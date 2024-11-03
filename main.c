@@ -1,14 +1,18 @@
 #include <stdio.h>
 
-extern void executive();
+extern char* executive();
 
 int main() {
     printf("Welcome to Random Number Programmed by Code Goblin.\n");
-    printf("Starting the executive function...\n"); // Debugging statement
+    printf("Starting the executive function...\n");
 
-    executive();
+    // Call executive and store the returned name
+    char* name = executive();
 
-    printf("Oh, Sam Freidrickson. We hope you enjoyed your arrays. Do come again.\n"); // Debugging statement
+    // Print the name in the final message
+    printf("\nOh, %s. We hope you enjoyed your arrays. Do come again.\n", name);
     printf("A zero will be returned to the operating system.\n");
+
     return 0;
 }
+

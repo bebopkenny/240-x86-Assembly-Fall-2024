@@ -1,6 +1,5 @@
 global executive
-extern fgets, printf, strlen, stdin, atoi
-extern fill_random_array, show_array, normalize_array, sort
+extern fgets, printf, strlen, stdin, atoi, fill_random_array, show_array, normalize_array, sort
 
 max_size equ 60
 
@@ -12,7 +11,7 @@ segment .data
     prompt_instruction_2 db "How many numbers do you want? Today’s limit is 100 per customer: ", 0
     prompt_print_num_1 db "Your numbers have been stored in an array. Here is that array.", 10, 10, 0
     prompt_print_num_2 db 10, "The array will now be normalized to the range 1.0 to 2.0. Here is the normalized array.", 10, 10, 0
-    prompt_sorted db 10, "The array will now be sorted", 10, 0
+    prompt_sorted db 10, "The array will now be sorted.", 10, 0  ; Added sorting message
     prompt_goodbye db "Goodbye %s. You are welcome any time.", 10, 0
 
 segment .bss
@@ -23,7 +22,7 @@ segment .bss
 
 segment .text
 executive:
-    ; Save registers and set up the stack frame
+    ; Back up registers
     push rbp
     mov rbp, rsp
     push rbx
@@ -89,20 +88,14 @@ executive:
     call atoi
     mov r15, rax
 
-    ; Validate the number of random numbers
-    cmp r15, 1
-    jl .exit                             ; Exit if less than 1
-    cmp r15, 100
-    jg .exit                             ; Exit if greater than 100
+    ; Print the first array message
+    mov rdi, prompt_print_num_1
+    call printf
 
     ; Generate random numbers in the array
     mov rdi, random_number_array
     mov rsi, r15
     call fill_random_array
-
-    ; Print the first array message
-    mov rdi, prompt_print_num_1
-    call printf
 
     ; Display the array
     mov rdi, random_number_array
@@ -137,13 +130,12 @@ executive:
     mov rsi, r15
     call show_array
 
-.exit:
     ; Print the goodbye message
     mov rdi, prompt_goodbye
     mov rsi, input_title
     call printf
 
-    ; Restore registers and clean up
+    ; Restore registers
     popf
     pop r15
     pop r14
@@ -159,4 +151,7 @@ executive:
     pop rcx
     pop rbx
     pop rbp
+
+    ; Return the address of input_name
+    lea rax, [input_name]
     ret
