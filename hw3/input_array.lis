@@ -1,0 +1,102 @@
+     1                                  global input_array
+     2                                  extern printf
+     3                                  extern scanf
+     4                                  extern isinteger
+     5                                  extern malloc
+     6                                  
+     7                                  segment .data
+     8 00000000 456E7465722061206E-     prompt db "Enter a number: ", 0
+     8 00000009 756D6265723A2000   
+     9 00000011 496E76616C69642069-     invalid_msg db "Invalid input. Please try again. ", 10, 0
+     9 0000001A 6E7075742E20506C65-
+     9 00000023 617365207472792061-
+     9 0000002C 6761696E2E200A00   
+    10 00000034 256C6400                format_integer db "%ld", 0  ; Changed to %ld for long integers
+    11                                  
+    12                                  segment .bss
+    13                                  align 64
+    14 00000000 <res 340h>              storedata resb 832
+    15                                  
+    16                                  segment .text
+    17                                  
+    18                                  input_array:
+    19                                      ; Back up components
+    20 00000000 55                          push        rbp
+    21 00000001 4889E5                      mov         rbp, rsp
+    22 00000004 53                          push        rbx
+    23 00000005 51                          push        rcx
+    24 00000006 52                          push        rdx
+    25 00000007 56                          push        rsi
+    26 00000008 57                          push        rdi
+    27 00000009 4150                        push        r8 
+    28 0000000B 4151                        push        r9 
+    29 0000000D 4152                        push        r10
+    30 0000000F 4153                        push        r11
+    31 00000011 4154                        push        r12
+    32 00000013 4155                        push        r13
+    33 00000015 4156                        push        r14
+    34 00000017 4157                        push        r15
+    35 00000019 9C                          pushf
+    36                                  
+    37                                      ; Save all the floating-point numbers
+    38 0000001A B807000000                  mov         rax, 7
+    39 0000001F BA00000000                  mov         rdx, 0
+    40 00000024 0FAE2425[00000000]          xsave       [storedata]
+    41                                      
+    42 0000002C 4D31ED                      xor         r13, r13    ; r13 keeps track of the index of the loop   
+    43 0000002F 4989FE                      mov         r14, rdi     ; rdi contains the array (user_array)    
+    44 00000032 4989F7                      mov         r15, rsi     ; rsi contains the size of the array
+    45                                  
+    46                                  input_loop:
+    47                                      ; If the array is full, end the loop
+    48 00000035 4D39FD                      cmp         r13, r15
+    49 00000038 7D27                        jge         input_finished
+    50                                  
+    51                                      ; Scan for input
+    52 0000003A B800000000                  mov         rax, 0
+    53 0000003F 48BF-                       mov         rdi, format_integer  ; Use %ld for integers
+    53 00000041 [3400000000000000] 
+    54 00000049 498D3424                    lea         rsi, [r12]          ; Address of the variable for storing input
+    55 0000004D E8(00000000)                call        scanf 
+    56                                  
+    57                                      ; If the user presses CTRL+D, end the loop
+    58 00000052 4883F801                    cmp         rax, 1                ; scanf returns the number of inputs read
+    59 00000056 7509                        jne         input_finished         ; If 0 or EOF, exit the loop
+    60                                  
+    61                                      ; Move the input into the array
+    62 00000058 4F8924EE                    mov         [r14 + r13 * 8], r12  ; Store the read integer in user_array
+    63                                      
+    64                                      ; Increase the index
+    65 0000005C 49FFC5                      inc         r13      
+    66                                      
+    67                                      ; Repeat the loop
+    68 0000005F EBD4                        jmp         input_loop
+    69                                  
+    70                                  input_finished:
+    71                                      ; Restore all the floating-point numbers
+    72 00000061 B807000000                  mov         rax, 7
+    73 00000066 BA00000000                  mov         rdx, 0
+    74 0000006B 0FAE2C25[00000000]          xrstor      [storedata]
+    75                                  
+    76                                      ; Send the count back to manage
+    77 00000073 4C89E8                      mov         rax, r13  
+    78                                  
+    79                                      ; Restore the original values to the GPRs
+    80 00000076 9D                          popf          
+    81 00000077 415F                        pop         r15
+    82 00000079 415E                        pop         r14
+    83 0000007B 415D                        pop         r13
+    84 0000007D 415C                        pop         r12
+    85 0000007F 415B                        pop         r11
+    86 00000081 415A                        pop         r10
+    87 00000083 4159                        pop         r9 
+    88 00000085 4158                        pop         r8 
+    89 00000087 5F                          pop         rdi
+    90 00000088 5E                          pop         rsi
+    91 00000089 5A                          pop         rdx
+    92 0000008A 59                          pop         rcx
+    93 0000008B 5B                          pop         rbx
+    94 0000008C 5D                          pop         rbp
+    95                                  
+    96                                      ; Clean up
+    97 0000008D C3                          ret 

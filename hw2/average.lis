@@ -1,0 +1,408 @@
+     1                                  ;Author information
+     2                                  ;  Author name: Kenny Garcia
+     3                                  ;  Author email: kennygarcia15@csu.fullerton.edu
+     4                                  ;  Section: 03
+     5                                  ;  CWID: 887930782
+     6                                  
+     7                                  extern scanf
+     8                                  
+     9                                  extern printf
+    10                                  
+    11                                  global calc_average
+    12                                  
+    13                                  section .data
+    14 00000000 506C6561736520656E-         prompt1 db "Please enter your first and last names: ", 10, 0
+    14 00000009 74657220796F757220-
+    14 00000012 666972737420616E64-
+    14 0000001B 206C617374206E616D-
+    14 00000024 65733A200A00       
+    15 0000002A 506C6561736520656E-         prompt2 db "Please enter your title such as Lieutenant, Chief, Mr, Ms, Influencer, Chairman, Freshman, Foreman, Project Leader, etc: ", 10, 0
+    15 00000033 74657220796F757220-
+    15 0000003C 7469746C6520737563-
+    15 00000045 68206173204C696575-
+    15 0000004E 74656E616E742C2043-
+    15 00000057 686965662C204D722C-
+    15 00000060 204D732C20496E666C-
+    15 00000069 75656E6365722C2043-
+    15 00000072 686169726D616E2C20-
+    15 0000007B 46726573686D616E2C-
+    15 00000084 20466F72656D616E2C-
+    15 0000008D 2050726F6A65637420-
+    15 00000096 4C65616465722C2065-
+    15 0000009F 74633A200A00       
+    16 000000A5 5468616E6B20796F75-         prompt3 db "Thank you %s %s", 10, 0
+    16 000000AE 2025732025730A00   
+    17 000000B6 496E76616C69642064-         invalid_input db "Invalid data detected. Try again.", 10, 0  ; Error message
+    17 000000BF 617461206465746563-
+    17 000000C8 7465642E2054727920-
+    17 000000D1 616761696E2E0A00   
+    18 000000D9 456E74657220746865-         santa_ana db "Enter the number of miles traveled from Fullerton to Santa Ana: ", 10, 0
+    18 000000E2 206E756D626572206F-
+    18 000000EB 66206D696C65732074-
+    18 000000F4 726176656C65642066-
+    18 000000FD 726F6D2046756C6C65-
+    18 00000106 72746F6E20746F2053-
+    18 0000010F 616E746120416E613A-
+    18 00000118 200A00             
+    19 0000011B 456E74657220796F75-         avg_santa_ana_text db "Enter your average speed during that leg of the trip: ", 10, 0
+    19 00000124 722061766572616765-
+    19 0000012D 207370656564206475-
+    19 00000136 72696E672074686174-
+    19 0000013F 206C6567206F662074-
+    19 00000148 686520747269703A20-
+    19 00000151 0A00               
+    20 00000153 456E74657220746865-         long_beach db "Enter the number of miles traveled from Santa Ana to Long Beach: ", 10, 0
+    20 0000015C 206E756D626572206F-
+    20 00000165 66206D696C65732074-
+    20 0000016E 726176656C65642066-
+    20 00000177 726F6D2053616E7461-
+    20 00000180 20416E6120746F204C-
+    20 00000189 6F6E67204265616368-
+    20 00000192 3A200A00           
+    21 00000196 456E74657220796F75-         avg_long_beach_text db "Enter your average speed during that leg of the trip: ", 10, 0
+    21 0000019F 722061766572616765-
+    21 000001A8 207370656564206475-
+    21 000001B1 72696E672074686174-
+    21 000001BA 206C6567206F662074-
+    21 000001C3 686520747269703A20-
+    21 000001CC 0A00               
+    22 000001CE 456E74657220746865-         fullerton db "Enter the number of miles traveled from Long Beach to Fullerton: ", 10, 0
+    22 000001D7 206E756D626572206F-
+    22 000001E0 66206D696C65732074-
+    22 000001E9 726176656C65642066-
+    22 000001F2 726F6D204C6F6E6720-
+    22 000001FB 426561636820746F20-
+    22 00000204 46756C6C6572746F6E-
+    22 0000020D 3A200A00           
+    23 00000211 456E74657220796F75-         avg_fullerton_text db "Enter your average speed during that leg of the trip: ", 10, 0
+    23 0000021A 722061766572616765-
+    23 00000223 207370656564206475-
+    23 0000022C 72696E672074686174-
+    23 00000235 206C6567206F662074-
+    23 0000023E 686520747269703A20-
+    23 00000247 0A00               
+    24 00000249 54686520696E707574-         data_processing db "The inputted data are being processed ", 10, 0
+    24 00000252 746564206461746120-
+    24 0000025B 617265206265696E67-
+    24 00000264 2070726F6365737365-
+    24 0000026D 64200A00           
+    25 00000271 54686520746F74616C-         total_distance db "The total distance traveled is %lf miles.", 10, 0  ; Message to display total distance
+    25 0000027A 2064697374616E6365-
+    25 00000283 2074726176656C6564-
+    25 0000028C 20697320256C66206D-
+    25 00000295 696C65732E0A00     
+    26 0000029C 5468652074696D6520-         time_of_trip db "The time of trip is %lf hours.", 10, 0
+    26 000002A5 6F6620747269702069-
+    26 000002AE 7320256C6620686F75-
+    26 000002B7 72732E0A00         
+    27 000002BC 546865206176657261-         total_average_speed db "The average during this trip is %lf mph.", 10, 0
+    27 000002C5 676520647572696E67-
+    27 000002CE 207468697320747269-
+    27 000002D7 7020697320256C6620-
+    27 000002E0 6D70682E0A00       
+    28 000002E6 257300                      string_format db "%s", 0
+    29 000002E9 256C6600                    number_format db "%lf", 0    ; Using %lf to read doubles
+    30 000002ED 0000000000000840            three dq 3.0     ; Define the constant 3.0
+    31                                  
+    32                                  section .bss
+    33 00000000 <res 64h>                   user_name resb 100          ; Reserve space for the user's name
+    34 00000064 <res 64h>                   user_title resb 100         ; Reserve space for the user's title
+    35 000000C8 ????????????????            miles_santa_ana resq 1      ; Buffer for the miles as a double
+    36 000000D0 ????????????????            avg_santa_ana resq 1        ; Buffer for average speed as a double
+    37 000000D8 ????????????????            miles_long_beach resq 1     ; Buffer for Long Beach miles as a double
+    38 000000E0 ????????????????            avg_long_beach resq 1       ; Buffer for Long Beach avg speed as a double
+    39 000000E8 ????????????????            miles_fullerton resq 1      ; Buffer for Fullerton miles as a double
+    40 000000F0 ????????????????            avg_fullerton resq 1        ; Buffer for Fullerton avg speed as a double
+    41 000000F8 ????????????????            sum_total_distance resq 1   ; Buffer for the total distance
+    42 00000100 ????????????????            sum_time_of_trip resq 1
+    43 00000108 ????????????????            sum_total_average_speed resq 1
+    44                                  
+    45                                  section .text
+    46                                      calc_average: 
+    47                                       
+    48 00000000 55                          push        rbp             ; Save base pointer
+    49 00000001 4889E5                      mov         rbp, rsp        ; Set base pointer to the stack pointer
+    50 00000004 53                          push        rbx             ; Save registers for later use
+    51 00000005 51                          push        rcx
+    52 00000006 52                          push        rdx
+    53 00000007 56                          push        rsi
+    54 00000008 57                          push        rdi
+    55 00000009 4150                        push        r8 
+    56 0000000B 4151                        push        r9 
+    57 0000000D 4152                        push        r10
+    58 0000000F 4153                        push        r11
+    59 00000011 4154                        push        r12
+    60 00000013 4155                        push        r13
+    61 00000015 4156                        push        r14
+    62 00000017 4157                        push        r15
+    63 00000019 9C                          pushf                        ; Save flags
+    64                                  
+    65                                  
+    66                                      ; Prompt for user's name
+    67 0000001A 48BF-                       mov         rdi, prompt1     ; Move prompt message to rdi
+    67 0000001C [0000000000000000] 
+    68 00000024 E8(00000000)                call        printf           ; Print the message
+    69                                  
+    70 00000029 48BF-                       mov         rdi, string_format
+    70 0000002B [E602000000000000] 
+    71 00000033 48BE-                       mov         rsi, user_name   ; Prepare to scan input into user_name
+    71 00000035 [0000000000000000] 
+    72 0000003D E8(00000000)                call        scanf            ; Read the user's name
+    73                                  
+    74                                      ; Prompt for user's title
+    75 00000042 48BF-                       mov         rdi, prompt2     ; Move title prompt to rdi
+    75 00000044 [2A00000000000000] 
+    76 0000004C E8(00000000)                call        printf           ; Print the title prompt
+    77                                  
+    78 00000051 48BF-                       mov         rdi, string_format
+    78 00000053 [E602000000000000] 
+    79 0000005B 48BE-                       mov         rsi, user_title  ; Prepare to scan input into user_title
+    79 0000005D [6400000000000000] 
+    80 00000065 E8(00000000)                call        scanf            ; Read the user's title
+    81                                  
+    82                                      ; Print "Thank you {name} {title}"
+    83 0000006A 48BF-                       mov         rdi, prompt3     ; Move the thank you message to rdi
+    83 0000006C [A500000000000000] 
+    84 00000074 48BE-                       mov         rsi, user_name   ; Move user name to rsi
+    84 00000076 [0000000000000000] 
+    85 0000007E 48BA-                       mov         rdx, user_title  ; Move user title to rdx
+    85 00000080 [6400000000000000] 
+    86 00000088 E8(00000000)                call        printf           ; Print the thank you message
+    87                                  
+    88                                      ; Prompt for Santa Ana miles
+    89 0000008D 48BF-                       mov         rdi, santa_ana   ; Prompt user for miles traveled to Santa Ana
+    89 0000008F [D900000000000000] 
+    90 00000097 E8(00000000)                call        printf           ; Print the prompt
+    91                                  
+    92                                      input_miles_santa_ana:
+    93                                      ; Use scanf with %lf to store the miles as a double
+    94 0000009C 48BF-                       mov         rdi, number_format
+    94 0000009E [E902000000000000] 
+    95 000000A6 48BE-                       mov         rsi, miles_santa_ana  ; Store input in miles_santa_ana
+    95 000000A8 [C800000000000000] 
+    96 000000B0 E8(00000000)                call        scanf            ; Read miles_santa_ana
+    97                                  
+    98                                      ; Check if scanf successfully read a double (scanf returns 1 for success)
+    99 000000B5 4883F801                    cmp         rax, 1           ; Compare scanf result (stored in rax) with 1
+   100 000000B9 7411                        je          valid_miles_santa_ana  ; If valid, jump to valid_miles_santa_ana
+   101                                      
+   102                                      ; If invalid, print error message and try again
+   103 000000BB 48BF-                       mov         rdi, invalid_input  ; Load invalid input message
+   103 000000BD [B600000000000000] 
+   104 000000C5 E8(00000000)                call        printf             ; Print the error message
+   105 000000CA EBD0                        jmp         input_miles_santa_ana  ; Jump back to retry the input
+   106                                  
+   107                                      valid_miles_santa_ana:
+   108                                      ; Prompt for average speed to Santa Ana
+   109 000000CC 48BF-                       mov         rdi, avg_santa_ana_text  ; Prompt for avg speed to Santa Ana
+   109 000000CE [1B01000000000000] 
+   110 000000D6 E8(00000000)                call        printf           ; Print the prompt
+   111                                  
+   112                                      input_avg_santa_ana:
+   113                                      ; Use scanf with %lf to store the avg speed as a double
+   114 000000DB 48BF-                       mov         rdi, number_format
+   114 000000DD [E902000000000000] 
+   115 000000E5 48BE-                       mov         rsi, avg_santa_ana  ; Store input in avg_santa_ana
+   115 000000E7 [D000000000000000] 
+   116 000000EF E8(00000000)                call        scanf            ; Read avg_santa_ana
+   117                                  
+   118 000000F4 4883F801                    cmp         rax, 1
+   119 000000F8 7411                        je          valid_avg_santa_ana
+   120                                  
+   121 000000FA 48BF-                       mov         rdi, invalid_input
+   121 000000FC [B600000000000000] 
+   122 00000104 E8(00000000)                call        printf
+   123 00000109 EBD0                        jmp         input_avg_santa_ana
+   124                                  
+   125                                      valid_avg_santa_ana: 
+   126                                      ; Prompt for Long Beach miles
+   127 0000010B 48BF-                       mov         rdi, long_beach   ; Prompt user for miles to Long Beach
+   127 0000010D [5301000000000000] 
+   128 00000115 E8(00000000)                call        printf           ; Print the prompt
+   129                                  
+   130                                      input_miles_long_beach:
+   131                                      ; Use scanf with %lf to store the miles as a double
+   132 0000011A 48BF-                       mov         rdi, number_format
+   132 0000011C [E902000000000000] 
+   133 00000124 48BE-                       mov         rsi, miles_long_beach  ; Store input in miles_long_beach
+   133 00000126 [D800000000000000] 
+   134 0000012E E8(00000000)                call        scanf            ; Read miles_long_beach
+   135                                  
+   136 00000133 4883F801                    cmp         rax, 1
+   137 00000137 7411                        je          valid_miles_long_beach
+   138                                  
+   139 00000139 48BF-                       mov         rdi, invalid_input
+   139 0000013B [B600000000000000] 
+   140 00000143 E8(00000000)                call        printf
+   141 00000148 EBD0                        jmp         input_miles_long_beach
+   142                                  
+   143                                      valid_miles_long_beach:
+   144                                      ; Prompt for average speed to Long Beach
+   145 0000014A 48BF-                       mov         rdi, avg_long_beach_text ; Prompt for avg speed to Long Beach
+   145 0000014C [9601000000000000] 
+   146 00000154 E8(00000000)                call        printf           ; Print the prompt
+   147                                  
+   148                                      input_avg_long_beach:
+   149                                      ; Use scanf with %lf to store the avg speed as a double
+   150 00000159 48BF-                       mov         rdi, number_format
+   150 0000015B [E902000000000000] 
+   151 00000163 48BE-                       mov         rsi, avg_long_beach  ; Store input in avg_long_beach
+   151 00000165 [E000000000000000] 
+   152 0000016D E8(00000000)                call        scanf            ; Read avg_long_beach
+   153                                  
+   154 00000172 4883F801                    cmp         rax, 1
+   155 00000176 7411                        je          valid_avg_long_beach
+   156                                  
+   157 00000178 48BF-                       mov         rdi, invalid_input
+   157 0000017A [B600000000000000] 
+   158 00000182 E8(00000000)                call        printf
+   159 00000187 EBD0                        jmp         input_avg_long_beach
+   160                                  
+   161                                      valid_avg_long_beach:
+   162                                      ; Prompt for Fullerton miles
+   163 00000189 48BF-                       mov         rdi, fullerton    ; Prompt user for miles to Fullerton
+   163 0000018B [CE01000000000000] 
+   164 00000193 E8(00000000)                call        printf           ; Print the prompt
+   165                                  
+   166                                      input_miles_fullerton:
+   167                                      ; Use scanf with %lf to store the miles as a double
+   168 00000198 48BF-                       mov         rdi, number_format
+   168 0000019A [E902000000000000] 
+   169 000001A2 48BE-                       mov         rsi, miles_fullerton  ; Store input in miles_fullerton
+   169 000001A4 [E800000000000000] 
+   170 000001AC E8(00000000)                call        scanf            ; Read miles_fullerton
+   171                                  
+   172 000001B1 4883F801                    cmp         rax, 1
+   173 000001B5 7411                        je          valid_miles_fullerton
+   174                                  
+   175 000001B7 48BF-                       mov         rdi, invalid_input
+   175 000001B9 [B600000000000000] 
+   176 000001C1 E8(00000000)                call        printf
+   177 000001C6 EBD0                        jmp         input_miles_fullerton
+   178                                  
+   179                                      valid_miles_fullerton:
+   180                                      ; Prompt for average speed to Fullerton
+   181 000001C8 48BF-                       mov         rdi, avg_fullerton_text  ; Prompt for avg speed to Fullerton
+   181 000001CA [1102000000000000] 
+   182 000001D2 E8(00000000)                call        printf           ; Print the prompt
+   183                                  
+   184                                      input_avg_fullerton:
+   185                                      ; Use scanf with %lf to store the avg speed as a double
+   186 000001D7 48BF-                       mov         rdi, number_format
+   186 000001D9 [E902000000000000] 
+   187 000001E1 48BE-                       mov         rsi, avg_fullerton  ; Store input in avg_fullerton
+   187 000001E3 [F000000000000000] 
+   188 000001EB E8(00000000)                call        scanf            ; Read avg_fullerton
+   189                                  
+   190 000001F0 4883F801                    cmp         rax, 1
+   191 000001F4 7411                        je          valid_avg_fullerton
+   192                                  
+   193 000001F6 48BF-                       mov         rdi, invalid_input
+   193 000001F8 [B600000000000000] 
+   194 00000200 E8(00000000)                call        printf
+   195 00000205 EBD0                        jmp         input_avg_fullerton
+   196                                  
+   197                                      valid_avg_fullerton:
+   198                                      ; Print "The inputted data are being processed"
+   199 00000207 48BF-                       mov         rdi, data_processing   ; Move processing message to rdi
+   199 00000209 [4902000000000000] 
+   200 00000211 E8(00000000)                call        printf                 ; Print processing message
+   201                                  
+   202                                      ; Calculate the total distance: length1 + length2 + length3
+   203 00000216 F20F100425-                 movsd       xmm0, [miles_santa_ana]   ; Load miles_santa_ana into xmm0
+   203 0000021B [C8000000]         
+   204 0000021F F20F580425-                 addsd       xmm0, [miles_long_beach]  ; Add miles_long_beach to xmm0
+   204 00000224 [D8000000]         
+   205 00000228 F20F580425-                 addsd       xmm0, [miles_fullerton]   ; Add miles_fullerton to xmm0
+   205 0000022D [E8000000]         
+   206                                  
+   207 00000231 F20F110425-                 movsd       [sum_total_distance], xmm0  ; Store the result in sum_total_distance
+   207 00000236 [F8000000]         
+   208                                  
+   209                                      ; Print the total distance
+   210 0000023A 48BF-                       mov         rdi, total_distance    ; Move total_distance message to rdi
+   210 0000023C [7102000000000000] 
+   211 00000244 F20F100425-                 movsd       xmm0, [sum_total_distance]  ; Load total distance into xmm0 for printing
+   211 00000249 [F8000000]         
+   212 0000024D E8(00000000)                call        printf                 ; Print the total distance
+   213                                  
+   214                                        ; First leg (L1 / S1) - Santa Ana to Fullerton
+   215 00000252 F20F100425-                 movsd       xmm0, [miles_santa_ana]   ; Load miles_santa_ana into xmm0
+   215 00000257 [C8000000]         
+   216 0000025B F20F5E0425-                 divsd       xmm0, [avg_santa_ana]     ; Divide by avg_santa_ana (L1/S1)
+   216 00000260 [D0000000]         
+   217                                  
+   218                                      ; Second leg (L2 / S2) - Santa Ana to Long Beach
+   219 00000264 F20F100C25-                 movsd       xmm1, [miles_long_beach]  ; Load miles_long_beach into xmm1
+   219 00000269 [D8000000]         
+   220 0000026D F20F5E0C25-                 divsd       xmm1, [avg_long_beach]    ; Divide by avg_long_beach (L2/S2)
+   220 00000272 [E0000000]         
+   221 00000276 F20F58C1                    addsd       xmm0, xmm1                ; Add result to xmm0
+   222                                  
+   223                                      ; Third leg (L3 / S3) - Long Beach to Fullerton
+   224 0000027A F20F101425-                 movsd       xmm2, [miles_fullerton]   ; Load miles_fullerton into xmm2
+   224 0000027F [E8000000]         
+   225 00000283 F20F5E1425-                 divsd       xmm2, [avg_fullerton]     ; Divide by avg_fullerton (L3/S3)
+   225 00000288 [F0000000]         
+   226 0000028C F20F58C2                    addsd       xmm0, xmm2                ; Add result to xmm0
+   227                                  
+   228                                      ; Store the final result in sum_time_of_trip
+   229 00000290 F20F110425-                 movsd       [sum_time_of_trip], xmm0
+   229 00000295 [00010000]         
+   230                                  
+   231                                      ; Print the final total time
+   232 00000299 48BF-                       mov         rdi, time_of_trip         ; Move time_of_trip message to rdi
+   232 0000029B [9C02000000000000] 
+   233 000002A3 F20F100425-                 movsd       xmm0, [sum_time_of_trip]  ; Load the final time for printing
+   233 000002A8 [00010000]         
+   234 000002AC E8(00000000)                call        printf                    ; Print the final result
+   235                                  
+   236                                      ; First part: S1 + S2
+   237 000002B1 F20F100425-                 movsd       xmm0, [avg_santa_ana]     ; Load avg_santa_ana (S1) into xmm0
+   237 000002B6 [D0000000]         
+   238 000002BA F20F580425-                 addsd       xmm0, [avg_long_beach]    ; Add avg_long_beach (S2) to xmm0
+   238 000002BF [E0000000]         
+   239                                  
+   240                                      ; Second part: Add S3 (avg_fullerton)
+   241 000002C3 F20F580425-                 addsd       xmm0, [avg_fullerton]     ; Add avg_fullerton (S3) to xmm0
+   241 000002C8 [F0000000]         
+   242                                  
+   243                                      ; Divide by 3 to get the average speed
+   244 000002CC F20F100C25-                 movsd       xmm1, [three]             ; Load 3.0 into xmm1 (from .data section)
+   244 000002D1 [ED020000]         
+   245 000002D5 F20F5EC1                    divsd       xmm0, xmm1                ; Divide (S1 + S2 + S3) by 3
+   246                                  
+   247                                      ; Store the final result in sum_total_average_speed
+   248 000002D9 F20F110425-                 movsd       [sum_total_average_speed], xmm0
+   248 000002DE [08010000]         
+   249                                  
+   250                                      ; Print the final average speed
+   251 000002E2 48BF-                       mov         rdi, total_average_speed  ; Move the average speed message to rdi
+   251 000002E4 [BC02000000000000] 
+   252 000002EC F20F100425-                 movsd       xmm0, [sum_total_average_speed] ; Load the final average speed
+   252 000002F1 [08010000]         
+   253 000002F5 E8(00000000)                call        printf                    ; Print the final result
+   254                                  
+   255 000002FA F20F100425-                 movsd       xmm0, [sum_total_average_speed]  ; Load the final average speed into xmm0
+   255 000002FF [08010000]         
+   256                                  
+   257                                  
+   258                                      ; Restore stack and registers
+   259 00000303 9D                          popf                           ; Restore flags
+   260 00000304 415F                        pop         r15
+   261 00000306 415E                        pop         r14
+   262 00000308 415D                        pop         r13
+   263 0000030A 415C                        pop         r12
+   264 0000030C 415B                        pop         r11
+   265 0000030E 415A                        pop         r10
+   266 00000310 4159                        pop         r9 
+   267 00000312 4158                        pop         r8 
+   268 00000314 5F                          pop         rdi
+   269 00000315 5E                          pop         rsi
+   270 00000316 5A                          pop         rdx
+   271 00000317 59                          pop         rcx
+   272 00000318 5B                          pop         rbx
+   273 00000319 5D                          pop         rbp
+   274                                  
+   275                                      ; Clean up and return
+   276 0000031A C3                          ret

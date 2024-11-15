@@ -1,0 +1,152 @@
+     1                                  extern scanf
+     2                                  extern printf
+     3                                  extern input_array
+     4                                  extern isinteger
+     5                                  extern sum
+     6                                  extern output_array
+     7                                  max_size equ 10
+     8                                  
+     9                                  global manager
+    10                                  
+    11                                  segment .data
+    12 00000000 506C6561736520656E-         prompt db "Please enter your name: ", 0      
+    12 00000009 74657220796F757220-
+    12 00000012 6E616D653A2000     
+    13 00000019 546869732070726F67-         prompt2 db "This program will sum your array of integers.", 10, 0
+    13 00000022 72616D2077696C6C20-
+    13 0000002B 73756D20796F757220-
+    13 00000034 6172726179206F6620-
+    13 0000003D 696E7465676572732E-
+    13 00000046 0A00               
+    14 00000048 456E74657220612073-         prompt3 db "Enter a sequence of long integers separated by white space.", 10, 0
+    14 00000051 657175656E6365206F-
+    14 0000005A 66206C6F6E6720696E-
+    14 00000063 746567657273207365-
+    14 0000006C 706172617465642062-
+    14 00000075 792077686974652073-
+    14 0000007E 706163652E0A00     
+    15 00000085 416674657220746865-         prompt4 db "After the last input press enter followed by Control+D: ", 10, 0
+    15 0000008E 206C61737420696E70-
+    15 00000097 757420707265737320-
+    15 000000A0 656E74657220666F6C-
+    15 000000A9 6C6F77656420627920-
+    15 000000B2 436F6E74726F6C2B44-
+    15 000000BB 3A200A00           
+    16 000000BF 5468657365206E756D-         prompt5 db "These number were received and placed into the: ", 10, 0
+    16 000000C8 626572207765726520-
+    16 000000D1 726563656976656420-
+    16 000000DA 616E6420706C616365-
+    16 000000E3 6420696E746F207468-
+    16 000000EC 653A200A00         
+    17 000000F1 257300                      string_format db "%s", 0
+    18 000000F4 256C642000                  integer_format db "%ld ", 0          ; To print long integers
+    19                                  
+    20                                  segment .bss
+    21                                      align 64
+    22 00000000 <res 340h>                  storedata resb 832
+    23 00000340 <res 50h>                   user_array resq max_size
+    24 00000390 <res 64h>                   user_name resb 100
+    25                                  
+    26                                  segment .text
+    27                                  manager:
+    28 00000000 55                          push        rbp             ; Save base pointer
+    29 00000001 4889E5                      mov         rbp, rsp        ; Set base pointer to the stack pointer
+    30 00000004 53                          push        rbx             ; Save registers for later use
+    31 00000005 51                          push        rcx
+    32 00000006 52                          push        rdx
+    33 00000007 56                          push        rsi
+    34 00000008 57                          push        rdi
+    35 00000009 4150                        push        r8 
+    36 0000000B 4151                        push        r9 
+    37 0000000D 4152                        push        r10
+    38 0000000F 4153                        push        r11
+    39 00000011 4154                        push        r12
+    40 00000013 4155                        push        r13
+    41 00000015 4156                        push        r14
+    42 00000017 4157                        push        r15
+    43 00000019 9C                          pushf                        ; Save flags
+    44                                  
+    45                                      ; Prompt for user's name
+    46 0000001A B807000000                  mov         rax, 7
+    47 0000001F BA00000000                  mov         rdx, 0
+    48 00000024 0FAE2425[00000000]          xsave       [storedata]
+    49                                  
+    50 0000002C B800000000                  mov         rax, 0
+    51 00000031 48BF-                       mov         rdi, prompt      ; Move prompt message to rdi
+    51 00000033 [0000000000000000] 
+    52 0000003B E8(00000000)                call        printf           ; Print the message
+    53                                  
+    54 00000040 48BF-                       mov         rdi, string_format
+    54 00000042 [F100000000000000] 
+    55 0000004A 48BE-                       mov         rsi, user_name   ; Prepare to scan input into user_name
+    55 0000004C [9003000000000000] 
+    56 00000054 E8(00000000)                call        scanf            ; Read the user's name
+    57                                  
+    58                                      ; Print the user's name
+    59 00000059 48BF-                       mov         rdi, user_name
+    59 0000005B [9003000000000000] 
+    60 00000063 E8(00000000)                call        printf
+    61                                  
+    62                                      ; Print other messages
+    63 00000068 48BF-                       mov         rdi, prompt2
+    63 0000006A [1900000000000000] 
+    64 00000072 E8(00000000)                call        printf
+    65                                      
+    66 00000077 48BF-                       mov         rdi, prompt3
+    66 00000079 [4800000000000000] 
+    67 00000081 E8(00000000)                call        printf
+    68                                  
+    69 00000086 48BF-                       mov         rdi, prompt4
+    69 00000088 [8500000000000000] 
+    70 00000090 E8(00000000)                call        printf
+    71                                  
+    72                                      ; Call input_array
+    73 00000095 B800000000                  mov         rax, 0
+    74 0000009A 48BF-                       mov         rdi, user_array
+    74 0000009C [4003000000000000] 
+    75 000000A4 BE0A000000                  mov         rsi, max_size
+    76 000000A9 E8(00000000)                call        input_array      ; Input integers and store count in rax
+    77                                  
+    78                                      ; rax contains the count of elements
+    79 000000AE 4989C5                      mov         r13, rax         ; Move count of elements to r13
+    80                                  
+    81                                      ; Print the array elements
+    82 000000B1 B800000000                  mov         rax, 0
+    83 000000B6 48BF-                       mov         rdi, prompt5
+    83 000000B8 [BF00000000000000] 
+    84 000000C0 E8(00000000)                call        printf
+    85                                  
+    86 000000C5 4D31F6                      xor         r14, r14         ; Set index to 0
+    87                                  
+    88                                  print_loop:
+    89 000000C8 4D39EE                      cmp         r14, r13         ; If we've printed all elements, exit the loop
+    90 000000CB 7D1C                        jge         print_finished
+    91                                  
+    92 000000CD 4A8B34F5[40030000]          mov         rsi, qword [user_array + r14 * 8]  ; Load the element from the array (4 bytes for int)
+    93 000000D5 48BF-                       mov         rdi, integer_format          ; Format to print integer
+    93 000000D7 [F400000000000000] 
+    94 000000DF E8(00000000)                call        printf
+    95                                  
+    96 000000E4 49FFC6                      inc         r14              ; Increment index
+    97 000000E7 EBDF                        jmp         print_loop
+    98                                  
+    99                                  print_finished:
+   100                                      ; Restore stack and registers
+   101 000000E9 9D                          popf                           ; Restore flags
+   102 000000EA 415F                        pop         r15
+   103 000000EC 415E                        pop         r14
+   104 000000EE 415D                        pop         r13
+   105 000000F0 415C                        pop         r12
+   106 000000F2 415B                        pop         r11
+   107 000000F4 415A                        pop         r10
+   108 000000F6 4159                        pop         r9 
+   109 000000F8 4158                        pop         r8 
+   110 000000FA 5F                          pop         rdi
+   111 000000FB 5E                          pop         rsi
+   112 000000FC 5A                          pop         rdx
+   113 000000FD 59                          pop         rcx
+   114 000000FE 5B                          pop         rbx
+   115 000000FF 5D                          pop         rbp
+   116                                  
+   117                                      ; Clean up and return
+   118 00000100 C3                          ret

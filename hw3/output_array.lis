@@ -1,0 +1,76 @@
+     1                                  global output_array
+     2                                  extern printf
+     3                                  
+     4                                  section .data
+     5 00000000 256400                  output_int db "%d", 0  ; Change format to integer
+     6                                  
+     7                                  section .bss
+     8                                  align 64
+     9 00000000 <res 340h>              storedata resb 832
+    10                                  
+    11                                  section .text
+    12                                  
+    13                                  output_array:
+    14                                      ; Back up components
+    15 00000000 55                          push        rbp
+    16 00000001 4889E5                      mov         rbp, rsp
+    17 00000004 53                          push        rbx
+    18 00000005 51                          push        rcx
+    19 00000006 52                          push        rdx
+    20 00000007 56                          push        rsi
+    21 00000008 57                          push        rdi
+    22 00000009 4150                        push        r8 
+    23 0000000B 4151                        push        r9 
+    24 0000000D 4152                        push        r10
+    25 0000000F 4153                        push        r11
+    26 00000011 4154                        push        r12
+    27 00000013 4155                        push        r13
+    28 00000015 4156                        push        r14
+    29 00000017 4157                        push        r15
+    30                                  
+    31 00000019 4D31ED                      xor         r13, r13     ; r13 keeps track of the index
+    32 0000001C 4989FE                      mov         r14, rdi     ; rdi contains the pointer to the array (user_array)
+    33 0000001F 4989F7                      mov         r15, rsi     ; rsi contains the count of the array
+    34                                  
+    35                                  output_loop:
+    36                                      ; If the index reaches the count, end the loop
+    37 00000022 4D39FD                      cmp         r13, r15
+    38 00000025 7D2A                        jge         output_finished
+    39                                   
+    40                                      ; Print the number inside the array
+    41 00000027 4831FF                      xor         rdi, rdi
+    42 0000002A 4B8B34EE                    mov         rsi, qword [r14 + r13 * 8]  ; Access the long integer (8 bytes)
+    43 0000002E 48BF-                       mov         rdi, output_int        ; Format string for long integer
+    43 00000030 [0000000000000000] 
+    44 00000038 E8(00000000)                call        printf                   ; Call printf to print the integer
+    45                                  
+    46                                     ; If this is not the last element, print a comma and space
+    47 0000003D 4D39FD                      cmp         r13, r15
+    48 00000040 740A                        je          no_comma
+    49 00000042 BF2C200000                  mov         rdi, ", "               ; Print comma and space
+    50 00000047 E8(00000000)                call        printf
+    51                                  
+    52                                  no_comma:
+    53                                      ; Increase the index
+    54 0000004C 49FFC5                      inc         r13    
+    55                                  
+    56                                      ; Repeat the loop
+    57 0000004F EBD1                        jmp         output_loop
+    58                                  
+    59                                  output_finished:
+    60                                      ; Restore the state (if necessary)
+    61 00000051 415F                        pop         r15
+    62 00000053 415E                        pop         r14
+    63 00000055 415D                        pop         r13
+    64 00000057 415C                        pop         r12
+    65 00000059 415B                        pop         r11
+    66 0000005B 415A                        pop         r10
+    67 0000005D 4159                        pop         r9 
+    68 0000005F 4158                        pop         r8 
+    69 00000061 5F                          pop         rdi
+    70 00000062 5E                          pop         rsi
+    71 00000063 5A                          pop         rdx
+    72 00000064 59                          pop         rcx
+    73 00000065 5B                          pop         rbx
+    74 00000066 5D                          pop         rbp
+    75 00000067 C3                          ret 
