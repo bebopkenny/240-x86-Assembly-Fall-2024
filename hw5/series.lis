@@ -1,0 +1,186 @@
+     1                                  global series
+     2                                  extern taylor
+     3                                  extern printf
+     4                                  extern scanf
+     5                                  
+     6                                  section .data
+     7 00000000 5468697320736F6674-         prompt1 db "This software will compute any power of e that you may need.", 10, 0
+     7 00000009 776172652077696C6C-
+     7 00000012 20636F6D7075746520-
+     7 0000001B 616E7920706F776572-
+     7 00000024 206F66206520746861-
+     7 0000002D 7420796F75206D6179-
+     7 00000036 206E6565642E0A00   
+     8 0000003E 506C6561736520656E-         prompt2 db "Please enter a float number value for x: ", 0
+     8 00000047 746572206120666C6F-
+     8 00000050 6174206E756D626572-
+     8 00000059 2076616C756520666F-
+     8 00000062 7220783A2000       
+     9 00000068 506C6561736520656E-         prompt3 db "Please enter the number of terms to include in the Taylor sum: ", 0
+     9 00000071 74657220746865206E-
+     9 0000007A 756D626572206F6620-
+     9 00000083 7465726D7320746F20-
+     9 0000008C 696E636C7564652069-
+     9 00000095 6E2074686520546179-
+     9 0000009E 6C6F722073756D3A20-
+     9 000000A7 00                 
+    10 000000A8 5468652074696D6520-         start_time_msg db "The time on the clock is now %llu tics and taylor has been called", 10, 0
+    10 000000B1 6F6E2074686520636C-
+    10 000000BA 6F636B206973206E6F-
+    10 000000C3 7720256C6C75207469-
+    10 000000CC 637320616E64207461-
+    10 000000D5 796C6F722068617320-
+    10 000000DE 6265656E2063616C6C-
+    10 000000E7 65640A00           
+    11 000000EB 5468652074696D6520-         end_time_msg db "The time on the clock when Taylor terminated was %llu tics", 10, 0
+    11 000000F4 6F6E2074686520636C-
+    11 000000FD 6F636B207768656E20-
+    11 00000106 5461796C6F72207465-
+    11 0000010F 726D696E6174656420-
+    11 00000118 77617320256C6C7520-
+    11 00000121 746963730A00       
+    12 00000127 546865206578656375-         elapsed_time_msg db "The execution time was %llu tics.", 10, 0
+    12 00000130 74696F6E2074696D65-
+    12 00000139 2077617320256C6C75-
+    12 00000142 20746963732E0A00   
+    13 0000014A 54686520636F6D7075-         result_msg db "The computed approximation of e^x is: %.8f", 10, 0
+    13 00000153 74656420617070726F-
+    13 0000015C 78696D6174696F6E20-
+    13 00000165 6F6620655E78206973-
+    13 0000016E 3A20252E38660A00   
+    14 00000176 256C6600                    float_format db "%lf", 0
+    15 0000017A 256C7500                    int_format db "%lu", 0
+    16                                  
+    17                                  section .bss
+    18 00000000 ????????????????            user_num resq 1      ; To store the user's float input (x)
+    19 00000008 ????????????????            user_int resq 1      ; To store the user's integer input (n)
+    20 00000010 ????????????????            result resq 1        ; To store the result of the taylor function
+    21 00000018 ????????????????            start_ticks resq 1   ; To store the start clock ticks
+    22 00000020 ????????????????            end_ticks resq 1     ; To store the end clock ticks
+    23 00000028 ????????????????            elapsed_ticks resq 1 ; To store the elapsed clock ticks
+    24                                  
+    25                                  section .text
+    26                                  series:
+    27                                      ; Back up registers
+    28 00000000 55                          push rbp
+    29 00000001 4889E5                      mov rbp, rsp
+    30 00000004 53                          push rbx
+    31 00000005 51                          push rcx
+    32 00000006 52                          push rdx
+    33 00000007 56                          push rsi
+    34 00000008 57                          push rdi
+    35 00000009 4150                        push r8
+    36 0000000B 4151                        push r9
+    37 0000000D 4152                        push r10
+    38 0000000F 4153                        push r11
+    39 00000011 4154                        push r12
+    40 00000013 4155                        push r13
+    41 00000015 4156                        push r14
+    42 00000017 4157                        push r15
+    43 00000019 9C                          pushf
+    44                                  
+    45                                      ; Display prompt1
+    46 0000001A B800000000                  mov rax, 0
+    47 0000001F 48BF-                       mov rdi, prompt1
+    47 00000021 [0000000000000000] 
+    48 00000029 E8(00000000)                call printf
+    49                                  
+    50                                      ; Prompt for x (float value)
+    51 0000002E B800000000                  mov rax, 0
+    52 00000033 48BF-                       mov rdi, prompt2
+    52 00000035 [3E00000000000000] 
+    53 0000003D E8(00000000)                call printf
+    54 00000042 B801000000                  mov rax, 1
+    55 00000047 48BF-                       mov rdi, float_format
+    55 00000049 [7601000000000000] 
+    56 00000051 48BE-                       mov rsi, user_num
+    56 00000053 [0000000000000000] 
+    57 0000005B E8(00000000)                call scanf
+    58                                  
+    59                                      ; Prompt for n (integer value)
+    60 00000060 B800000000                  mov rax, 0
+    61 00000065 48BF-                       mov rdi, prompt3
+    61 00000067 [6800000000000000] 
+    62 0000006F E8(00000000)                call printf
+    63 00000074 B801000000                  mov rax, 1
+    64 00000079 48BF-                       mov rdi, int_format
+    64 0000007B [7A01000000000000] 
+    65 00000083 48BE-                       mov rsi, user_int
+    65 00000085 [0800000000000000] 
+    66 0000008D E8(00000000)                call scanf
+    67                                  
+    68                                      ; Get start clock ticks
+    69 00000092 0F31                        rdtsc                     ; Read time-stamp counter
+    70 00000094 48C1E220                    shl rdx, 32               ; Shift high bits to upper 32
+    71 00000098 4809D0                      or rax, rdx               ; Combine rax and rdx
+    72 0000009B 48890425[18000000]          mov qword [start_ticks], rax ; Store start ticks
+    73                                  
+    74                                      ; Print start time message
+    75 000000A3 B801000000                  mov rax, 1
+    76 000000A8 48BF-                       mov rdi, start_time_msg
+    76 000000AA [A800000000000000] 
+    77 000000B2 488B3425[18000000]          mov rsi, qword [start_ticks]
+    78 000000BA E8(00000000)                call printf
+    79                                  
+    80                                      ; Load user inputs into registers for taylor function
+    81 000000BF F20F100425-                 movsd xmm0, qword [user_num]  ; Load x (float) into xmm0
+    81 000000C4 [00000000]         
+    82 000000C8 488B3C25[08000000]          mov rdi, qword [user_int]     ; Load n (integer) into rdi
+    83                                  
+    84                                      ; Call taylor function
+    85 000000D0 E8(00000000)                call taylor
+    86                                  
+    87                                      ; Store result from taylor (in xmm0) into memory
+    88 000000D5 F20F110425-                 movsd qword [result], xmm0
+    88 000000DA [10000000]         
+    89                                  
+    90                                      ; Get end clock ticks
+    91 000000DE 0F31                        rdtsc                     ; Read time-stamp counter
+    92 000000E0 48C1E220                    shl rdx, 32               ; Shift high bits to upper 32
+    93 000000E4 4809D0                      or rax, rdx               ; Combine rax and rdx
+    94 000000E7 48890425[20000000]          mov qword [end_ticks], rax ; Store end ticks
+    95                                  
+    96                                      ; Print end time message
+    97 000000EF B801000000                  mov rax, 1
+    98 000000F4 48BF-                       mov rdi, end_time_msg
+    98 000000F6 [EB00000000000000] 
+    99 000000FE 488B3425[20000000]          mov rsi, qword [end_ticks]
+   100 00000106 E8(00000000)                call printf
+   101                                  
+   102                                      ; Calculate elapsed ticks
+   103 0000010B 488B0425[20000000]          mov rax, qword [end_ticks]
+   104 00000113 482B0425[18000000]          sub rax, qword [start_ticks]
+   105 0000011B 48890425[28000000]          mov qword [elapsed_ticks], rax
+   106                                  
+   107                                      ; Print elapsed time message
+   108 00000123 B801000000                  mov rax, 1
+   109 00000128 48BF-                       mov rdi, elapsed_time_msg
+   109 0000012A [2701000000000000] 
+   110 00000132 488B3425[28000000]          mov rsi, qword [elapsed_ticks]
+   111 0000013A E8(00000000)                call printf
+   112                                  
+   113                                      ; Print the result
+   114 0000013F B801000000                  mov rax, 1
+   115 00000144 48BF-                       mov rdi, result_msg
+   115 00000146 [4A01000000000000] 
+   116 0000014E 48BE-                       mov rsi, result
+   116 00000150 [1000000000000000] 
+   117 00000158 E8(00000000)                call printf
+   118                                  
+   119                                      ; Restore registers
+   120 0000015D 9D                          popf
+   121 0000015E 415F                        pop r15
+   122 00000160 415E                        pop r14
+   123 00000162 415D                        pop r13
+   124 00000164 415C                        pop r12
+   125 00000166 415B                        pop r11
+   126 00000168 415A                        pop r10
+   127 0000016A 4159                        pop r9
+   128 0000016C 4158                        pop r8
+   129 0000016E 5F                          pop rdi
+   130 0000016F 5E                          pop rsi
+   131 00000170 5A                          pop rdx
+   132 00000171 59                          pop rcx
+   133 00000172 5B                          pop rbx
+   134 00000173 5D                          pop rbp
+   135 00000174 C3                          ret
