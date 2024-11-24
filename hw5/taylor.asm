@@ -1,4 +1,5 @@
 global taylor
+extern series
 
 segment .data
 

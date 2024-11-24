@@ -1,14 +1,16 @@
 global series
 extern taylor
 extern printf
+extern scanf
 
 segment .data
     prompt1 db "This software will compute any power of e that you may need.", 10, 0
-    prompt2 db "Please enter a float number value for x: ", 10, 0
-
+    prompt2 db "Please enter the number of terms to include in the Taylor sum: ", 10, 0
+    float_format db "%f", 0
+    int_format db "%d", 0
 segment .bss
-    user_num dq %f
-
+    user_num resq 1
+    user_int resq 1
 segment .text
 series:
     ; Back up registers
@@ -29,10 +31,24 @@ series:
     push r15
     pushf
 
-    mov,    rax, 0
-    mov,    rdi, prompt1
-    call printf
+    mov    rax, 0
+    mov    rdi, prompt1
+    call   printf
 
+    mov     rax, 1
+    mov     rdi, float_format
+    mov     rsi, user_num
+    call    scanf
+
+    mov     rax, 0
+    mov     rdi, prompt2
+    call    printf
+
+    mov     rax, 1
+    mov     rdi, int_format
+    mov     rsi, user_int
+    call    scanf
+    
 
 
     ; Restore registers
