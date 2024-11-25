@@ -1,4 +1,9 @@
 global taylor
+extern printf  ; Declare printf as an external function
+
+section .data
+    debug_taylor_msg db "Debug: taylor called with x=%lf, n=%lu", 10, 0
+    debug_iteration_msg db "Debug: Iteration k=%ld, term=%lf", 10, 0
 
 section .text
 
@@ -20,18 +25,32 @@ taylor:
     push r14
     push r15
 
+    ; Debug: Print parameters passed to taylor
+    mov rax, 0
+    mov rdi, debug_taylor_msg
+    movsd xmm0, xmm0    ; x (double) passed in xmm0
+    mov rsi, rdi        ; n (unsigned long int) passed in rdi
+    call printf
+
     ; Initialize variables
     mov rbx, rdi          ; rbx = n (number of terms)
     mov r12, 1            ; r12 = factorial accumulator, initially 1
     xor r13, r13          ; r13 = k (current term index), initially 0
     movsd xmm1, xmm0      ; xmm1 = x (base value for terms)
-    movsd xmm2, xmm0      ; xmm2 = x^k, initially x^0 = 1.0
-    movsd xmm3, qword [taylor_one] ; xmm3 = result accumulator, initially 1.0
+    movsd xmm2, qword [taylor_one] ; xmm2 = 1.0 (initial x^0)
+    movsd xmm3, xmm2      ; xmm3 = result accumulator, initially 1.0
 
 taylor_loop:
     ; Break if k > n (all terms computed)
     cmp r13, rbx
     jg taylor_done
+
+    ; Debug: Print current iteration values
+    mov rax, 0
+    mov rdi, debug_iteration_msg
+    mov rsi, r13          ; Current term index (k)
+    movsd xmm0, xmm2      ; Current term (x^k / k!)
+    call printf
 
     ; Compute current term: xmm4 = x^k / k!
     movsd xmm4, xmm2      ; xmm4 = x^k
