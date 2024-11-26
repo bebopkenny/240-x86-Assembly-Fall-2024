@@ -1,57 +1,114 @@
-     1                                  global taylor
-     2                                  section .text
-     3                                  
-     4                                  taylor:
-     5                                      ; Back up callee-saved registers
-     6 00000000 55                          push rbp
-     7 00000001 4889E5                      mov rbp, rsp
-     8 00000004 53                          push rbx
-     9 00000005 4154                        push r12
-    10 00000007 4155                        push r13
-    11 00000009 4156                        push r14
-    12 0000000B 4157                        push r15
-    13                                  
-    14                                      ; Initialize variables
-    15 0000000D 4989FD                      mov r13, rdi             ; r13 = n (number of terms)
-    16 00000010 F24D0F2AFD                  cvtsi2sd xmm15, r13      ; Convert n to double for debug if needed
-    17 00000015 F2440F10F0                  movsd xmm14, xmm0        ; xmm14 = x (input x)
-    18 0000001A F2440F102C25-               movsd xmm13, qword [one] ; xmm13 = e^x (initially 1.0)
-    18 00000020 [00000000]         
-    19 00000024 F2440F102425-               movsd xmm12, qword [one] ; xmm12 = prev_term (initially 1.0)
-    19 0000002A [00000000]         
-    20 0000002E 41BC01000000                mov r12, 1               ; r12 = k (loop counter), starting at 1
-    21                                  
-    22                                  taylor_loop:
-    23                                      ; Break if k >= n
-    24 00000034 4D39EC                      cmp r12, r13
-    25 00000037 7D22                        jge taylor_done
-    26                                  
-    27                                      ; Compute current term: current_term = prev_term * x / k
-    28 00000039 F2410F10C4                  movsd xmm0, xmm12        ; xmm0 = prev_term
-    29 0000003E F2410F59C6                  mulsd xmm0, xmm14        ; xmm0 *= x
-    30 00000043 F2490F2ACC                  cvtsi2sd xmm1, r12       ; Convert k to double
-    31 00000048 F20F5EC1                    divsd xmm0, xmm1         ; xmm0 /= k
-    32 0000004C F2440F10E0                  movsd xmm12, xmm0        ; Update prev_term = current_term
-    33                                  
-    34                                      ; Add current term to sum
-    35 00000051 F2440F58E8                  addsd xmm13, xmm0        ; e^x += current_term
-    36                                  
-    37                                      ; Increment k (r12) and loop
-    38 00000056 49FFC4                      inc r12
-    39 00000059 EBD9                        jmp taylor_loop
-    40                                  
-    41                                  taylor_done:
-    42                                      ; Move result to xmm0
-    43 0000005B F2410F10C5                  movsd xmm0, xmm13
-    44                                  
-    45                                      ; Restore callee-saved registers
-    46 00000060 415F                        pop r15
-    47 00000062 415E                        pop r14
-    48 00000064 415D                        pop r13
-    49 00000066 415C                        pop r12
-    50 00000068 5B                          pop rbx
-    51 00000069 5D                          pop rbp
-    52 0000006A C3                          ret
-    53                                  
-    54                                  section .data
-    55 00000000 000000000000F03F        one dq 1.0
+     1                                  ;====================================================================================
+     2                                  ; Program Name: "Taylor Series Approximation". 
+     3                                  ; This program calculates the Taylor series expansion to approximate the exponential 
+     4                                  ; function e^x using user-provided inputs for the base x and the number of terms.
+     5                                  ;
+     6                                  ; Copyright (C) 2024  Kenny Garcia. 
+     7                                  ;
+     8                                  ; This program is free software: you can redistribute it and/or modify it under the
+     9                                  ; terms of the GNU General Public License as published by the Free Software Foundation,
+    10                                  ; version 3 or (at your option) any later version.
+    11                                  ;
+    12                                  ; Taylor Series Approximation is distributed in the hope that it will be helpful,
+    13                                  ; but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+    14                                  ; or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+    15                                  ;
+    16                                  ; A copy of the GNU General Public License v3 can be found at: <https://www.gnu.org/licenses/>.
+    17                                  ;====================================================================================
+    18                                  ;
+    19                                  ; Author Information:
+    20                                  ;   Author Name: Kenny Garcia
+    21                                  ;   Author Email: kennygarcia15@csu.fullerton.edu
+    22                                  ;   CWID: 887930782
+    23                                  ;   Class: 240 Section 05
+    24                                  ;
+    25                                  ; Program Information:
+    26                                  ;   Program Name: Taylor Series Approximation
+    27                                  ;   Programming Languages: Main module in C++, supporting modules in x86 Assembly
+    28                                  ;   Start Date: 2024-November-24
+    29                                  ;   Last Updated: 2024-November-25
+    30                                  ;   Files in the Program: main.cpp, series.asm, taylor.asm, r.sh
+    31                                  ;   Status: Complete and verified for functional accuracy
+    32                                  ;
+    33                                  ; Purpose:
+    34                                  ;   This program computes the approximation of e^x using the Taylor series expansion
+    35                                  ;   up to a specified number of terms. The result is calculated efficiently and 
+    36                                  ;   execution time is measured in CPU clock ticks for performance evaluation.
+    37                                  ;
+    38                                  ;====================================================================================
+    39                                  
+    40                                  global taylor
+    41                                  section .text
+    42                                  
+    43                                  taylor:
+    44                                      ; Prologue with 15 pushes
+    45 00000000 55                          push rbp
+    46 00000001 4889E5                      mov rbp, rsp
+    47 00000004 53                          push rbx
+    48 00000005 51                          push rcx
+    49 00000006 52                          push rdx
+    50 00000007 57                          push rdi
+    51 00000008 56                          push rsi
+    52 00000009 4150                        push r8
+    53 0000000B 4151                        push r9
+    54 0000000D 4152                        push r10
+    55 0000000F 4153                        push r11
+    56 00000011 4154                        push r12
+    57 00000013 4155                        push r13
+    58 00000015 4156                        push r14
+    59 00000017 4157                        push r15
+    60 00000019 9C                          pushf
+    61                                  
+    62                                      ; Initialize variables
+    63 0000001A 4989FD                      mov r13, rdi             ; r13 = n (number of terms)
+    64 0000001D F24D0F2AFD                  cvtsi2sd xmm15, r13      ; Convert n to double for debug if needed
+    65 00000022 F2440F10F0                  movsd xmm14, xmm0        ; xmm14 = x (input x)
+    66 00000027 F2440F102C25-               movsd xmm13, qword [one] ; xmm13 = e^x (initially 1.0)
+    66 0000002D [00000000]         
+    67 00000031 F2440F102425-               movsd xmm12, qword [one] ; xmm12 = prev_term (initially 1.0)
+    67 00000037 [00000000]         
+    68 0000003B 41BC01000000                mov r12, 1               ; r12 = k (loop counter), starting at 1
+    69                                  
+    70                                  taylor_loop:
+    71                                      ; Break if k >= n
+    72 00000041 4D39EC                      cmp r12, r13
+    73 00000044 7D22                        jge taylor_done
+    74                                  
+    75                                      ; Compute current term: current_term = prev_term * x / k
+    76 00000046 F2410F10C4                  movsd xmm0, xmm12        ; xmm0 = prev_term
+    77 0000004B F2410F59C6                  mulsd xmm0, xmm14        ; xmm0 *= x
+    78 00000050 F2490F2ACC                  cvtsi2sd xmm1, r12       ; Convert k to double
+    79 00000055 F20F5EC1                    divsd xmm0, xmm1         ; xmm0 /= k
+    80 00000059 F2440F10E0                  movsd xmm12, xmm0        ; Update prev_term = current_term
+    81                                  
+    82                                      ; Add current term to sum
+    83 0000005E F2440F58E8                  addsd xmm13, xmm0        ; e^x += current_term
+    84                                  
+    85                                      ; Increment k (r12) and loop
+    86 00000063 49FFC4                      inc r12
+    87 00000066 EBD9                        jmp taylor_loop
+    88                                  
+    89                                  taylor_done:
+    90                                      ; Move result to xmm0
+    91 00000068 F2410F10C5                  movsd xmm0, xmm13
+    92                                  
+    93                                      ; Epilogue with 15 pops
+    94 0000006D 9D                          popf
+    95 0000006E 415F                        pop r15
+    96 00000070 415E                        pop r14
+    97 00000072 415D                        pop r13
+    98 00000074 415C                        pop r12
+    99 00000076 415B                        pop r11
+   100 00000078 415A                        pop r10
+   101 0000007A 4159                        pop r9
+   102 0000007C 4158                        pop r8
+   103 0000007E 5E                          pop rsi
+   104 0000007F 5F                          pop rdi
+   105 00000080 5A                          pop rdx
+   106 00000081 59                          pop rcx
+   107 00000082 5B                          pop rbx
+   108 00000083 5D                          pop rbp
+   109 00000084 C3                          ret
+   110                                  
+   111                                  section .data
+   112 00000000 000000000000F03F        one dq 1.0
