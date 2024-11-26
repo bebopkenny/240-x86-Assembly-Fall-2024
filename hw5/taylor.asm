@@ -1,58 +1,55 @@
+global taylor
 section .text
-    global taylor
 
-; double taylor(double x, unsigned long n)
 taylor:
-    ; Prologue
+    ; Back up callee-saved registers
     push rbp
     mov rbp, rsp
-    sub rsp, 32  ; Allocate stack space for local variables
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
 
-    ; Initialize sum and term
-    xorps xmm1, xmm1          ; xmm1 = sum = 0.0
-    movsd xmm2, qword [rbp+16]; xmm2 = x
-    mov rax, 1                ; rax = factorial = 1
-    xor rcx, rcx              ; rcx = i = 0
+    ; Initialize variables
+    mov r13, rdi             ; r13 = n (number of terms)
+    cvtsi2sd xmm15, r13      ; Convert n to double for debug if needed
+    movsd xmm14, xmm0        ; xmm14 = x (input x)
+    movsd xmm13, qword [one] ; xmm13 = e^x (initially 1.0)
+    movsd xmm12, qword [one] ; xmm12 = prev_term (initially 1.0)
+    mov r12, 1               ; r12 = k (loop counter), starting at 1
 
-.loop_start:
-    cmp rcx, rdi              ; Compare i with n
-    jge .loop_end             ; If i >= n, exit loop
+taylor_loop:
+    ; Break if k >= n
+    cmp r12, r13
+    jge taylor_done
 
-    ; Calculate term: x^i / i!
-    test rcx, rcx             ; Check if i == 0
-    jz .first_term
-    imul rax, rcx             ; factorial *= i
-.first_term:
-    mov rbx, rax              ; Copy factorial to rbx
-    cvtsi2sd xmm3, rbx        ; xmm3 = (double)factorial
+    ; Compute current term: current_term = prev_term * x / k
+    movsd xmm0, xmm12        ; xmm0 = prev_term
+    mulsd xmm0, xmm14        ; xmm0 *= x
+    cvtsi2sd xmm1, r12       ; Convert k to double
+    divsd xmm0, xmm1         ; xmm0 /= k
+    movsd xmm12, xmm0        ; Update prev_term = current_term
 
-    mov rbx, rcx
-    movsd xmm4, xmm2          ; xmm4 = x
-    call pow                  ; xmm4 = x^i
+    ; Add current term to sum
+    addsd xmm13, xmm0        ; e^x += current_term
 
-    divsd xmm4, xmm3          ; xmm4 = term = x^i / i!
-    addsd xmm1, xmm4          ; sum += term
+    ; Increment k (r12) and loop
+    inc r12
+    jmp taylor_loop
 
-    ; Debugging: Optional code to print intermediate values
-    ; Print x^i (in xmm4), i! (in xmm3), and sum (in xmm1)
+taylor_done:
+    ; Move result to xmm0
+    movsd xmm0, xmm13
 
-    inc rcx
-    jmp .loop_start
-.loop_end:
-    movsd xmm0, xmm1          ; Return sum in xmm0
-
-    ; Epilogue
-    leave
+    ; Restore callee-saved registers
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+    pop rbp
     ret
 
-; Power function (x^i)
-pow:
-    test rbx, rbx
-    jz .pow_end               ; If exponent is 0, result is 1
-    movsd xmm0, xmm4          ; xmm0 = base = x
-.pow_loop:
-    mulsd xmm0, xmm4          ; xmm0 *= base
-    dec rbx
-    jnz .pow_loop             ; Repeat until exponent reaches 0
-.pow_end:
-    ret
+section .data
+one dq 1.0

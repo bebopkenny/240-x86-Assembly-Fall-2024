@@ -17,3 +17,4 @@ chmod +x taylor_series.out
 ./taylor_series.out
 
 echo "This bash script will now terminate."
+
