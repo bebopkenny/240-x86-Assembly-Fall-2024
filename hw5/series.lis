@@ -34,286 +34,257 @@
     34                                  ;   This program computes the approximation of e^x using the Taylor series expansion
     35                                  ;   up to a specified number of terms. The result is calculated efficiently and 
     36                                  ;   execution time is measured in CPU clock ticks for performance evaluation.
-    37                                  ;
-    38                                  ;====================================================================================
+    37                                  ;====================================================================================
+    38                                  
     39                                  
-    40                                  
-    41                                  global series
-    42                                  extern taylor
-    43                                  extern printf
-    44                                  extern scanf
-    45                                  
-    46                                  section .data
-    47 00000000 57656C636F6D652074-         welcome_msg db "Welcome to Taylor Series by Kenny Garcia.", 10, 0  ; Greeting message
-    47 00000009 6F205461796C6F7220-
-    47 00000012 536572696573206279-
-    47 0000001B 204B656E6E79204761-
-    47 00000024 726369612E0A00     
-    48 0000002B 5468697320736F6674-         software_msg db "This software will compute any power of e that you may need.", 10, 0  ; Purpose of the program
-    48 00000034 776172652077696C6C-
-    48 0000003D 20636F6D7075746520-
-    48 00000046 616E7920706F776572-
-    48 0000004F 206F66206520746861-
-    48 00000058 7420796F75206D6179-
-    48 00000061 206E6565642E0A00   
-    49 00000069 506C6561736520656E-         input_prompt_x db "Please enter a float number value for x: ", 0  ; Prompt for x
-    49 00000072 746572206120666C6F-
-    49 0000007B 6174206E756D626572-
-    49 00000084 2076616C756520666F-
-    49 0000008D 7220783A2000       
-    50 00000093 506C6561736520656E-         input_prompt_n db "Please enter the number of terms to include in the Taylor sum: ", 0  ; Prompt for n
-    50 0000009C 74657220746865206E-
-    50 000000A5 756D626572206F6620-
-    50 000000AE 7465726D7320746F20-
-    50 000000B7 696E636C7564652069-
-    50 000000C0 6E2074686520546179-
-    50 000000C9 6C6F722073756D3A20-
-    50 000000D2 00                 
-    51 000000D3 5468652074696D6520-         clock_start_msg db "The time on the clock is now %llu tics and Taylor has been called.", 10, 0  ; Start clock message
-    51 000000DC 6F6E2074686520636C-
-    51 000000E5 6F636B206973206E6F-
-    51 000000EE 7720256C6C75207469-
-    51 000000F7 637320616E64205461-
-    51 00000100 796C6F722068617320-
-    51 00000109 6265656E2063616C6C-
-    51 00000112 65642E0A00         
-    52 00000117 5468616E6B20796F75-         thank_you_msg db "Thank you for waiting.", 10, 0  ; Thank you message
-    52 00000120 20666F722077616974-
-    52 00000129 696E672E0A00       
-    53 0000012F 5468652074696D6520-         clock_end_msg db "The time on the clock when Taylor terminated was %llu tics.", 10, 0  ; End clock message
-    53 00000138 6F6E2074686520636C-
-    53 00000141 6F636B207768656E20-
-    53 0000014A 5461796C6F72207465-
-    53 00000153 726D696E6174656420-
-    53 0000015C 77617320256C6C7520-
-    53 00000165 746963732E0A00     
-    54 0000016C 546865206578656375-         exec_time_msg db "The execution time was %llu tics.", 10, 0  ; Elapsed time message
-    54 00000175 74696F6E2074696D65-
-    54 0000017E 2077617320256C6C75-
-    54 00000187 20746963732E0A00   
-    55 0000018F 54686520636F6D7075-         result_msg db "The computed approximation of e^x is: %.8f with precision of 8 digits right of the point.", 10, 0  ; Result message
-    55 00000198 74656420617070726F-
-    55 000001A1 78696D6174696F6E20-
-    55 000001AA 6F6620655E78206973-
-    55 000001B3 3A20252E3866207769-
-    55 000001BC 746820707265636973-
-    55 000001C5 696F6E206F66203820-
-    55 000001CE 646967697473207269-
-    55 000001D7 676874206F66207468-
-    55 000001E0 6520706F696E742E0A-
-    55 000001E9 00                 
-    56 000001EA 546865206672657175-         freq_msg db "The frequency of the microprocessor of this computer is %.1f GHz.", 10, 0  ; Frequency of processor
-    56 000001F3 656E6379206F662074-
-    56 000001FC 6865206D6963726F70-
-    56 00000205 726F636573736F7220-
-    56 0000020E 6F6620746869732063-
-    56 00000217 6F6D70757465722069-
-    56 00000220 7320252E3166204748-
-    56 00000229 7A2E0A00           
-    57 0000022D 5468652074696D6520-         ns_time_msg db "The time required to run the Taylor function was %.1f ns.", 10, 0  ; Time in nanoseconds
-    57 00000236 726571756972656420-
-    57 0000023F 746F2072756E207468-
-    57 00000248 65205461796C6F7220-
-    57 00000251 66756E6374696F6E20-
-    57 0000025A 77617320252E316620-
-    57 00000263 6E732E0A00         
-    58 00000268 5468616E6B20796F75-         outro_msg1 db "Thank you for using the Eyere exponential calculator.", 10, 0  ; Outro part 1
-    58 00000271 20666F72207573696E-
-    58 0000027A 672074686520457965-
-    58 00000283 7265206578706F6E65-
-    58 0000028C 6E7469616C2063616C-
-    58 00000295 63756C61746F722E0A-
-    58 0000029E 00                 
-    59 0000029F 506C65617365207265-         outro_msg2 db "Please return another day. The computed value will be set to the caller functions.", 10, 0  ; Outro part 2
-    59 000002A8 7475726E20616E6F74-
-    59 000002B1 686572206461792E20-
-    59 000002BA 54686520636F6D7075-
-    59 000002C3 7465642076616C7565-
-    59 000002CC 2077696C6C20626520-
-    59 000002D5 73657420746F207468-
-    59 000002DE 652063616C6C657220-
-    59 000002E7 66756E6374696F6E73-
-    59 000002F0 2E0A00             
-    60 000002F3 546865206472697665-         driver_msg db "The driver received this number %.8f and will keep it.", 10, 0  ; Driver result message
-    60 000002FC 722072656365697665-
-    60 00000305 642074686973206E75-
-    60 0000030E 6D62657220252E3866-
-    60 00000317 20616E642077696C6C-
-    60 00000320 206B6565702069742E-
-    60 00000329 0A00               
-    61 0000032B 476F6F642D6279652E-         goodbye_msg db "Good-bye.", 10, 0  ; Farewell message
-    61 00000334 0A00               
-    62 00000336 256C6600                    format_float db "%lf", 0  ; Format for floating-point input
-    63 0000033A 256C7500                    format_int db "%lu", 0    ; Format for integer input
+    40                                  global series
+    41                                  extern taylor
+    42                                  extern printf
+    43                                  extern scanf
+    44                                  
+    45                                  section .data
+    46 00000000 506C6561736520656E-         input_prompt_x db "Please enter a float number value for x: ", 0  ; Prompt for x
+    46 00000009 746572206120666C6F-
+    46 00000012 6174206E756D626572-
+    46 0000001B 2076616C756520666F-
+    46 00000024 7220783A2000       
+    47 0000002A 506C6561736520656E-         input_prompt_n db "Please enter the number of terms to include in the Taylor sum: ", 0  ; Prompt for n
+    47 00000033 74657220746865206E-
+    47 0000003C 756D626572206F6620-
+    47 00000045 7465726D7320746F20-
+    47 0000004E 696E636C7564652069-
+    47 00000057 6E2074686520546179-
+    47 00000060 6C6F722073756D3A20-
+    47 00000069 00                 
+    48 0000006A 5468652074696D6520-         clock_start_msg db "The time on the clock is now %llu tics and Taylor has been called.", 10, 0  ; Start clock message
+    48 00000073 6F6E2074686520636C-
+    48 0000007C 6F636B206973206E6F-
+    48 00000085 7720256C6C75207469-
+    48 0000008E 637320616E64205461-
+    48 00000097 796C6F722068617320-
+    48 000000A0 6265656E2063616C6C-
+    48 000000A9 65642E0A00         
+    49 000000AE 5468616E6B20796F75-         thank_you_msg db "Thank you for waiting.", 10, 0  ; Thank you message
+    49 000000B7 20666F722077616974-
+    49 000000C0 696E672E0A00       
+    50 000000C6 5468652074696D6520-         clock_end_msg db "The time on the clock when Taylor terminated was %llu tics.", 10, 0  ; End clock message
+    50 000000CF 6F6E2074686520636C-
+    50 000000D8 6F636B207768656E20-
+    50 000000E1 5461796C6F72207465-
+    50 000000EA 726D696E6174656420-
+    50 000000F3 77617320256C6C7520-
+    50 000000FC 746963732E0A00     
+    51 00000103 546865206578656375-         exec_time_msg db "The execution time was %llu tics.", 10, 0  ; Elapsed time message
+    51 0000010C 74696F6E2074696D65-
+    51 00000115 2077617320256C6C75-
+    51 0000011E 20746963732E0A00   
+    52 00000126 54686520636F6D7075-         result_msg db "The computed approximation of e^x is: %.8f with precision of 8 digits right of the point.", 10, 0  ; Result message
+    52 0000012F 74656420617070726F-
+    52 00000138 78696D6174696F6E20-
+    52 00000141 6F6620655E78206973-
+    52 0000014A 3A20252E3866207769-
+    52 00000153 746820707265636973-
+    52 0000015C 696F6E206F66203820-
+    52 00000165 646967697473207269-
+    52 0000016E 676874206F66207468-
+    52 00000177 6520706F696E742E0A-
+    52 00000180 00                 
+    53 00000181 546865206672657175-         freq_msg db "The frequency of the microprocessor of this computer is %.1f GHz.", 10, 0  ; Frequency of processor
+    53 0000018A 656E6379206F662074-
+    53 00000193 6865206D6963726F70-
+    53 0000019C 726F636573736F7220-
+    53 000001A5 6F6620746869732063-
+    53 000001AE 6F6D70757465722069-
+    53 000001B7 7320252E3166204748-
+    53 000001C0 7A2E0A00           
+    54 000001C4 5468652074696D6520-         ns_time_msg db "The time required to run the Taylor function was %.1f ns.", 10, 0  ; Time in nanoseconds
+    54 000001CD 726571756972656420-
+    54 000001D6 746F2072756E207468-
+    54 000001DF 65205461796C6F7220-
+    54 000001E8 66756E6374696F6E20-
+    54 000001F1 77617320252E316620-
+    54 000001FA 6E732E0A00         
+    55 000001FF 5468616E6B20796F75-         outro_msg1 db "Thank you for using the Eyere exponential calculator.", 10, 0  ; Outro part 1
+    55 00000208 20666F72207573696E-
+    55 00000211 672074686520457965-
+    55 0000021A 7265206578706F6E65-
+    55 00000223 6E7469616C2063616C-
+    55 0000022C 63756C61746F722E0A-
+    55 00000235 00                 
+    56 00000236 506C65617365207265-         outro_msg2 db "Please return another day. The computed value will be set to the caller functions.", 10, 0  ; Outro part 2
+    56 0000023F 7475726E20616E6F74-
+    56 00000248 686572206461792E20-
+    56 00000251 54686520636F6D7075-
+    56 0000025A 7465642076616C7565-
+    56 00000263 2077696C6C20626520-
+    56 0000026C 73657420746F207468-
+    56 00000275 652063616C6C657220-
+    56 0000027E 66756E6374696F6E73-
+    56 00000287 2E0A00             
+    57 0000028A 546865206472697665-         driver_msg db "The driver received this number %.8f and will keep it.", 10, 0  ; Driver result message
+    57 00000293 722072656365697665-
+    57 0000029C 642074686973206E75-
+    57 000002A5 6D62657220252E3866-
+    57 000002AE 20616E642077696C6C-
+    57 000002B7 206B6565702069742E-
+    57 000002C0 0A00               
+    58 000002C2 256C6600                    format_float db "%lf", 0  ; Format for floating-point input
+    59 000002C6 256C7500                    format_int db "%lu", 0    ; Format for integer input
+    60                                  
+    61                                      ; Constants
+    62 000002CA CDCCCCCCCCCC0040            processor_freq dq 2.1         ; Frequency of the processor in GHz
+    63 000002D2 0000000000408F40            thousand dq 1000.0            ; Constant for 1000.0
     64                                  
-    65                                      ; Constants
-    66 0000033E CDCCCCCCCCCC0040            processor_freq dq 2.1         ; Frequency of the processor in GHz
-    67 00000346 0000000000408F40            thousand dq 1000.0            ; Constant for 1000.0
-    68                                  
-    69                                  section .bss
-    70 00000000 ????????????????            x resq 1                      ; Storage for x (user input)
-    71 00000008 ????????????????            n resq 1                      ; Storage for n (user input)
-    72 00000010 ????????????????            start_tics resq 1             ; Start tics for timing
-    73 00000018 ????????????????            end_tics resq 1               ; End tics for timing
-    74 00000020 ????????????????            elapsed_ticks resq 1          ; Calculated elapsed tics
-    75 00000028 ????????????????            nanoseconds resq 1            ; Time in nanoseconds
-    76                                  
-    77                                  section .text
-    78                                  series:
-    79                                      ; Prologue with 15 pushes
-    80 00000000 55                          push rbp
-    81 00000001 4889E5                      mov rbp, rsp
-    82 00000004 53                          push rbx
-    83 00000005 51                          push rcx
-    84 00000006 52                          push rdx
-    85 00000007 57                          push rdi
-    86 00000008 56                          push rsi
-    87 00000009 4150                        push r8
-    88 0000000B 4151                        push r9
-    89 0000000D 4152                        push r10
-    90 0000000F 4153                        push r11
-    91 00000011 4154                        push r12
-    92 00000013 4155                        push r13
-    93 00000015 4156                        push r14
-    94 00000017 4157                        push r15
-    95 00000019 9C                          pushf
-    96                                  
-    97                                      ; Print welcome message
-    98 0000001A 488D3C25[00000000]          lea rdi, [welcome_msg]
-    99 00000022 4831C0                      xor rax, rax
-   100 00000025 E8(00000000)                call printf
+    65                                  section .bss
+    66 00000000 ????????????????            x resq 1                      ; Storage for x (user input)
+    67 00000008 ????????????????            n resq 1                      ; Storage for n (user input)
+    68 00000010 ????????????????            start_tics resq 1             ; Start tics for timing
+    69 00000018 ????????????????            end_tics resq 1               ; End tics for timing
+    70 00000020 ????????????????            elapsed_ticks resq 1          ; Calculated elapsed tics
+    71 00000028 ????????????????            nanoseconds resq 1            ; Time in nanoseconds
+    72                                  
+    73                                  section .text
+    74                                  series:
+    75                                      ; Prologue with 15 pushes
+    76 00000000 55                          push rbp
+    77 00000001 4889E5                      mov rbp, rsp
+    78 00000004 53                          push rbx
+    79 00000005 51                          push rcx
+    80 00000006 52                          push rdx
+    81 00000007 57                          push rdi
+    82 00000008 56                          push rsi
+    83 00000009 4150                        push r8
+    84 0000000B 4151                        push r9
+    85 0000000D 4152                        push r10
+    86 0000000F 4153                        push r11
+    87 00000011 4154                        push r12
+    88 00000013 4155                        push r13
+    89 00000015 4156                        push r14
+    90 00000017 4157                        push r15
+    91 00000019 9C                          pushf
+    92                                  
+    93                                      ; Prompt for x
+    94 0000001A 488D3C25[00000000]          lea rdi, [input_prompt_x]  ; Load the x prompt message
+    95 00000022 4831C0                      xor rax, rax
+    96 00000025 E8(00000000)                call printf
+    97 0000002A 488D3425[00000000]          lea rsi, [x]               ; Address to store x
+    98 00000032 488D3C25[C2020000]          lea rdi, [format_float]    ; Format for float input
+    99 0000003A 4831C0                      xor rax, rax
+   100 0000003D E8(00000000)                call scanf                 ; Read user input for x
    101                                  
-   102                                      ; Print software message
-   103 0000002A 488D3C25[2B000000]          lea rdi, [software_msg]
-   104 00000032 4831C0                      xor rax, rax
-   105 00000035 E8(00000000)                call printf
-   106                                  
-   107                                      ; Prompt for x
-   108 0000003A 488D3C25[69000000]          lea rdi, [input_prompt_x]  ; Load the x prompt message
-   109 00000042 4831C0                      xor rax, rax
-   110 00000045 E8(00000000)                call printf
-   111 0000004A 488D3425[00000000]          lea rsi, [x]               ; Address to store x
-   112 00000052 488D3C25[36030000]          lea rdi, [format_float]    ; Format for float input
-   113 0000005A 4831C0                      xor rax, rax
-   114 0000005D E8(00000000)                call scanf                 ; Read user input for x
-   115                                  
-   116                                      ; Prompt for n
-   117 00000062 488D3C25[93000000]          lea rdi, [input_prompt_n]  ; Load the n prompt message
-   118 0000006A 4831C0                      xor rax, rax
-   119 0000006D E8(00000000)                call printf
-   120 00000072 488D3425[08000000]          lea rsi, [n]               ; Address to store n
-   121 0000007A 488D3C25[3A030000]          lea rdi, [format_int]      ; Format for integer input
-   122 00000082 4831C0                      xor rax, rax
-   123 00000085 E8(00000000)                call scanf                 ; Read user input for n
-   124                                  
-   125                                      ; Start timing
-   126 0000008A 0F31                        rdtsc                      ; Read current tics into EDX:EAX
-   127 0000008C 48C1E220                    shl rdx, 32                ; Shift high 32 bits to upper register
-   128 00000090 4809D0                      or rax, rdx                ; Combine into a 64-bit value
-   129 00000093 48890425[10000000]          mov qword [start_tics], rax ; Store start tics
-   130                                  
-   131                                      ; Print clock start message
-   132 0000009B 488D3C25[D3000000]          lea rdi, [clock_start_msg]
-   133 000000A3 4889C6                      mov rsi, rax
-   134 000000A6 4831C0                      xor rax, rax
-   135 000000A9 E8(00000000)                call printf
-   136                                  
-   137                                      ; Call taylor function
-   138 000000AE F20F100425-                 movsd xmm0, qword [x]      ; Load x into xmm0
-   138 000000B3 [00000000]         
-   139 000000B7 488B3C25[08000000]          mov rdi, qword [n]         ; Move n into rdi
-   140 000000BF E8(00000000)                call taylor
-   141                                  
-   142                                      ; Print thank you message
-   143 000000C4 488D3C25[17010000]          lea rdi, [thank_you_msg]
-   144 000000CC 4831C0                      xor rax, rax
-   145 000000CF E8(00000000)                call printf
-   146                                  
-   147                                      ; End timing
-   148 000000D4 0F31                        rdtsc                      ; Read current tics into EDX:EAX
-   149 000000D6 48C1E220                    shl rdx, 32                ; Shift high 32 bits to upper register
-   150 000000DA 4809D0                      or rax, rdx                ; Combine into a 64-bit value
-   151 000000DD 48890425[18000000]          mov qword [end_tics], rax  ; Store end tics
-   152                                  
-   153                                      ; Print clock end message
-   154 000000E5 488D3C25[2F010000]          lea rdi, [clock_end_msg]
-   155 000000ED 4889C6                      mov rsi, rax
-   156 000000F0 4831C0                      xor rax, rax
-   157 000000F3 E8(00000000)                call printf
-   158                                  
-   159                                      ; Calculate elapsed tics
-   160 000000F8 488B0425[18000000]          mov rax, qword [end_tics]
-   161 00000100 482B0425[10000000]          sub rax, qword [start_tics]
-   162 00000108 48890425[20000000]          mov qword [elapsed_ticks], rax
-   163                                  
-   164                                      ; Print execution time
-   165 00000110 488D3C25[6C010000]          lea rdi, [exec_time_msg]
-   166 00000118 4889C6                      mov rsi, rax
-   167 0000011B 4831C0                      xor rax, rax
-   168 0000011E E8(00000000)                call printf
+   102                                      ; Prompt for n
+   103 00000042 488D3C25[2A000000]          lea rdi, [input_prompt_n]  ; Load the n prompt message
+   104 0000004A 4831C0                      xor rax, rax
+   105 0000004D E8(00000000)                call printf
+   106 00000052 488D3425[08000000]          lea rsi, [n]               ; Address to store n
+   107 0000005A 488D3C25[C6020000]          lea rdi, [format_int]      ; Format for integer input
+   108 00000062 4831C0                      xor rax, rax
+   109 00000065 E8(00000000)                call scanf                 ; Read user input for n
+   110                                  
+   111                                      ; Start timing
+   112 0000006A 0F31                        rdtsc                      ; Read current tics into EDX:EAX
+   113 0000006C 48C1E220                    shl rdx, 32                ; Shift high 32 bits to upper register
+   114 00000070 4809D0                      or rax, rdx                ; Combine into a 64-bit value
+   115 00000073 48890425[10000000]          mov qword [start_tics], rax ; Store start tics
+   116                                  
+   117                                      ; Print clock start message
+   118 0000007B 488D3C25[6A000000]          lea rdi, [clock_start_msg]
+   119 00000083 4889C6                      mov rsi, rax
+   120 00000086 4831C0                      xor rax, rax
+   121 00000089 E8(00000000)                call printf
+   122                                  
+   123                                      ; Call taylor function
+   124 0000008E F20F100425-                 movsd xmm0, qword [x]      ; Load x into xmm0
+   124 00000093 [00000000]         
+   125 00000097 488B3C25[08000000]          mov rdi, qword [n]         ; Move n into rdi
+   126 0000009F E8(00000000)                call taylor
+   127                                  
+   128                                      ; Print thank you message
+   129 000000A4 488D3C25[AE000000]          lea rdi, [thank_you_msg]
+   130 000000AC 4831C0                      xor rax, rax
+   131 000000AF E8(00000000)                call printf
+   132                                  
+   133                                      ; End timing
+   134 000000B4 0F31                        rdtsc                      ; Read current tics into EDX:EAX
+   135 000000B6 48C1E220                    shl rdx, 32                ; Shift high 32 bits to upper register
+   136 000000BA 4809D0                      or rax, rdx                ; Combine into a 64-bit value
+   137 000000BD 48890425[18000000]          mov qword [end_tics], rax  ; Store end tics
+   138                                  
+   139                                      ; Print clock end message
+   140 000000C5 488D3C25[C6000000]          lea rdi, [clock_end_msg]
+   141 000000CD 4889C6                      mov rsi, rax
+   142 000000D0 4831C0                      xor rax, rax
+   143 000000D3 E8(00000000)                call printf
+   144                                  
+   145                                      ; Calculate elapsed tics
+   146 000000D8 488B0425[18000000]          mov rax, qword [end_tics]
+   147 000000E0 482B0425[10000000]          sub rax, qword [start_tics]
+   148 000000E8 48890425[20000000]          mov qword [elapsed_ticks], rax
+   149                                  
+   150                                      ; Print execution time
+   151 000000F0 488D3C25[03010000]          lea rdi, [exec_time_msg]
+   152 000000F8 4889C6                      mov rsi, rax
+   153 000000FB 4831C0                      xor rax, rax
+   154 000000FE E8(00000000)                call printf
+   155                                  
+   156                                      ; Calculate nanoseconds
+   157 00000103 488B0425[20000000]          mov rax, qword [elapsed_ticks] ; Convert elapsed ticks to nanoseconds
+   158 0000010B F2480F2AC8                  cvtsi2sd xmm1, rax
+   159 00000110 F20F101425-                 movsd xmm2, qword [thousand]
+   159 00000115 [D2020000]         
+   160 00000119 F20F59CA                    mulsd xmm1, xmm2
+   161 0000011D F20F100425-                 movsd xmm0, qword [processor_freq]
+   161 00000122 [CA020000]         
+   162 00000126 F20F5EC8                    divsd xmm1, xmm0
+   163 0000012A F20F110C25-                 movsd qword [nanoseconds], xmm1
+   163 0000012F [28000000]         
+   164                                  
+   165                                      ; Print the result of Taylor function
+   166 00000133 488D3C25[26010000]          lea rdi, [result_msg]
+   167 0000013B F20F100425-                 movsd xmm0, qword [nanoseconds] ; Move computed result to xmm0
+   167 00000140 [28000000]         
+   168 00000144 E8(00000000)                call printf
    169                                  
-   170                                      ; Calculate nanoseconds
-   171 00000123 488B0425[20000000]          mov rax, qword [elapsed_ticks] ; Convert elapsed ticks to nanoseconds
-   172 0000012B F2480F2AC8                  cvtsi2sd xmm1, rax
-   173 00000130 F20F101425-                 movsd xmm2, qword [thousand]
-   173 00000135 [46030000]         
-   174 00000139 F20F59CA                    mulsd xmm1, xmm2
-   175 0000013D F20F100425-                 movsd xmm0, qword [processor_freq]
-   175 00000142 [3E030000]         
-   176 00000146 F20F5EC8                    divsd xmm1, xmm0
-   177 0000014A F20F110C25-                 movsd qword [nanoseconds], xmm1
-   177 0000014F [28000000]         
-   178                                  
-   179                                      ; Print the result of Taylor function
-   180 00000153 488D3C25[8F010000]          lea rdi, [result_msg]
-   181 0000015B F20F100425-                 movsd xmm0, qword [nanoseconds] ; Move computed result to xmm0
-   181 00000160 [28000000]         
-   182 00000164 E8(00000000)                call printf
-   183                                  
-   184                                      ; Print processor frequency
-   185 00000169 488D3C25[EA010000]          lea rdi, [freq_msg]
-   186 00000171 F20F100425-                 movsd xmm0, qword [processor_freq]
-   186 00000176 [3E030000]         
-   187 0000017A E8(00000000)                call printf
+   170                                      ; Print processor frequency
+   171 00000149 488D3C25[81010000]          lea rdi, [freq_msg]
+   172 00000151 F20F100425-                 movsd xmm0, qword [processor_freq]
+   172 00000156 [CA020000]         
+   173 0000015A E8(00000000)                call printf
+   174                                  
+   175                                      ; Print time in nanoseconds
+   176 0000015F 488D3C25[C4010000]          lea rdi, [ns_time_msg]
+   177 00000167 F20F100425-                 movsd xmm0, qword [nanoseconds]
+   177 0000016C [28000000]         
+   178 00000170 E8(00000000)                call printf
+   179                                  
+   180                                      ; Print outro messages
+   181 00000175 488D3C25[FF010000]          lea rdi, [outro_msg1]
+   182 0000017D 4831C0                      xor rax, rax
+   183 00000180 E8(00000000)                call printf
+   184                                  
+   185 00000185 488D3C25[36020000]          lea rdi, [outro_msg2]
+   186 0000018D 4831C0                      xor rax, rax
+   187 00000190 E8(00000000)                call printf
    188                                  
-   189                                      ; Print time in nanoseconds
-   190 0000017F 488D3C25[2D020000]          lea rdi, [ns_time_msg]
-   191 00000187 F20F100425-                 movsd xmm0, qword [nanoseconds]
-   191 0000018C [28000000]         
-   192 00000190 E8(00000000)                call printf
-   193                                  
-   194                                      ; Print outro messages
-   195 00000195 488D3C25[68020000]          lea rdi, [outro_msg1]
-   196 0000019D 4831C0                      xor rax, rax
-   197 000001A0 E8(00000000)                call printf
-   198                                  
-   199 000001A5 488D3C25[9F020000]          lea rdi, [outro_msg2]
-   200 000001AD 4831C0                      xor rax, rax
-   201 000001B0 E8(00000000)                call printf
-   202                                  
-   203 000001B5 488D3C25[F3020000]          lea rdi, [driver_msg]
-   204 000001BD F20F100425-                 movsd xmm0, qword [nanoseconds]
-   204 000001C2 [28000000]         
-   205 000001C6 E8(00000000)                call printf
-   206                                  
-   207 000001CB 488D3C25[2B030000]          lea rdi, [goodbye_msg]
-   208 000001D3 4831C0                      xor rax, rax
-   209 000001D6 E8(00000000)                call printf
-   210                                  
-   211                                      ; Epilogue with 15 pops
-   212 000001DB 9D                          popf
-   213 000001DC 415F                        pop r15
-   214 000001DE 415E                        pop r14
-   215 000001E0 415D                        pop r13
-   216 000001E2 415C                        pop r12
-   217 000001E4 415B                        pop r11
-   218 000001E6 415A                        pop r10
-   219 000001E8 4159                        pop r9
-   220 000001EA 4158                        pop r8
-   221 000001EC 5E                          pop rsi
-   222 000001ED 5F                          pop rdi
-   223 000001EE 5A                          pop rdx
-   224 000001EF 59                          pop rcx
-   225 000001F0 5B                          pop rbx
-   226 000001F1 5D                          pop rbp
-   227 000001F2 C3                          ret
+   189 00000195 488D3C25[8A020000]          lea rdi, [driver_msg]
+   190 0000019D F20F100425-                 movsd xmm0, qword [nanoseconds]
+   190 000001A2 [28000000]         
+   191 000001A6 E8(00000000)                call printf
+   192                                  
+   193                                      ; Epilogue with 15 pops
+   194 000001AB 9D                          popf
+   195 000001AC 415F                        pop r15
+   196 000001AE 415E                        pop r14
+   197 000001B0 415D                        pop r13
+   198 000001B2 415C                        pop r12
+   199 000001B4 415B                        pop r11
+   200 000001B6 415A                        pop r10
+   201 000001B8 4159                        pop r9
+   202 000001BA 4158                        pop r8
+   203 000001BC 5E                          pop rsi
+   204 000001BD 5F                          pop rdi
+   205 000001BE 5A                          pop rdx
+   206 000001BF 59                          pop rcx
+   207 000001C0 5B                          pop rbx
+   208 000001C1 5D                          pop rbp
+   209 000001C2 C3                          ret

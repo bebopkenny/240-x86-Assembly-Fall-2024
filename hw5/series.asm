@@ -34,7 +34,6 @@
 ;   This program computes the approximation of e^x using the Taylor series expansion
 ;   up to a specified number of terms. The result is calculated efficiently and 
 ;   execution time is measured in CPU clock ticks for performance evaluation.
-;
 ;====================================================================================
 
 
@@ -44,8 +43,6 @@ extern printf
 extern scanf
 
 section .data
-    welcome_msg db "Welcome to Taylor Series by Kenny Garcia.", 10, 0  ; Greeting message
-    software_msg db "This software will compute any power of e that you may need.", 10, 0  ; Purpose of the program
     input_prompt_x db "Please enter a float number value for x: ", 0  ; Prompt for x
     input_prompt_n db "Please enter the number of terms to include in the Taylor sum: ", 0  ; Prompt for n
     clock_start_msg db "The time on the clock is now %llu tics and Taylor has been called.", 10, 0  ; Start clock message
@@ -58,7 +55,6 @@ section .data
     outro_msg1 db "Thank you for using the Eyere exponential calculator.", 10, 0  ; Outro part 1
     outro_msg2 db "Please return another day. The computed value will be set to the caller functions.", 10, 0  ; Outro part 2
     driver_msg db "The driver received this number %.8f and will keep it.", 10, 0  ; Driver result message
-    goodbye_msg db "Good-bye.", 10, 0  ; Farewell message
     format_float db "%lf", 0  ; Format for floating-point input
     format_int db "%lu", 0    ; Format for integer input
 
@@ -93,16 +89,6 @@ series:
     push r14
     push r15
     pushf
-
-    ; Print welcome message
-    lea rdi, [welcome_msg]
-    xor rax, rax
-    call printf
-
-    ; Print software message
-    lea rdi, [software_msg]
-    xor rax, rax
-    call printf
 
     ; Prompt for x
     lea rdi, [input_prompt_x]  ; Load the x prompt message
@@ -202,10 +188,6 @@ series:
 
     lea rdi, [driver_msg]
     movsd xmm0, qword [nanoseconds]
-    call printf
-
-    lea rdi, [goodbye_msg]
-    xor rax, rax
     call printf
 
     ; Epilogue with 15 pops

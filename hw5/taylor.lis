@@ -34,81 +34,80 @@
     34                                  ;   This program computes the approximation of e^x using the Taylor series expansion
     35                                  ;   up to a specified number of terms. The result is calculated efficiently and 
     36                                  ;   execution time is measured in CPU clock ticks for performance evaluation.
-    37                                  ;
-    38                                  ;====================================================================================
-    39                                  
-    40                                  global taylor
-    41                                  section .text
-    42                                  
-    43                                  taylor:
-    44                                      ; Prologue with 15 pushes
-    45 00000000 55                          push rbp
-    46 00000001 4889E5                      mov rbp, rsp
-    47 00000004 53                          push rbx
-    48 00000005 51                          push rcx
-    49 00000006 52                          push rdx
-    50 00000007 57                          push rdi
-    51 00000008 56                          push rsi
-    52 00000009 4150                        push r8
-    53 0000000B 4151                        push r9
-    54 0000000D 4152                        push r10
-    55 0000000F 4153                        push r11
-    56 00000011 4154                        push r12
-    57 00000013 4155                        push r13
-    58 00000015 4156                        push r14
-    59 00000017 4157                        push r15
-    60 00000019 9C                          pushf
-    61                                  
-    62                                      ; Initialize variables
-    63 0000001A 4989FD                      mov r13, rdi             ; r13 = n (number of terms)
-    64 0000001D F24D0F2AFD                  cvtsi2sd xmm15, r13      ; Convert n to double for debug if needed
-    65 00000022 F2440F10F0                  movsd xmm14, xmm0        ; xmm14 = x (input x)
-    66 00000027 F2440F102C25-               movsd xmm13, qword [one] ; xmm13 = e^x (initially 1.0)
-    66 0000002D [00000000]         
-    67 00000031 F2440F102425-               movsd xmm12, qword [one] ; xmm12 = prev_term (initially 1.0)
-    67 00000037 [00000000]         
-    68 0000003B 41BC01000000                mov r12, 1               ; r12 = k (loop counter), starting at 1
-    69                                  
-    70                                  taylor_loop:
-    71                                      ; Break if k >= n
-    72 00000041 4D39EC                      cmp r12, r13
-    73 00000044 7D22                        jge taylor_done
-    74                                  
-    75                                      ; Compute current term: current_term = prev_term * x / k
-    76 00000046 F2410F10C4                  movsd xmm0, xmm12        ; xmm0 = prev_term
-    77 0000004B F2410F59C6                  mulsd xmm0, xmm14        ; xmm0 *= x
-    78 00000050 F2490F2ACC                  cvtsi2sd xmm1, r12       ; Convert k to double
-    79 00000055 F20F5EC1                    divsd xmm0, xmm1         ; xmm0 /= k
-    80 00000059 F2440F10E0                  movsd xmm12, xmm0        ; Update prev_term = current_term
-    81                                  
-    82                                      ; Add current term to sum
-    83 0000005E F2440F58E8                  addsd xmm13, xmm0        ; e^x += current_term
-    84                                  
-    85                                      ; Increment k (r12) and loop
-    86 00000063 49FFC4                      inc r12
-    87 00000066 EBD9                        jmp taylor_loop
-    88                                  
-    89                                  taylor_done:
-    90                                      ; Move result to xmm0
-    91 00000068 F2410F10C5                  movsd xmm0, xmm13
-    92                                  
-    93                                      ; Epilogue with 15 pops
-    94 0000006D 9D                          popf
-    95 0000006E 415F                        pop r15
-    96 00000070 415E                        pop r14
-    97 00000072 415D                        pop r13
-    98 00000074 415C                        pop r12
-    99 00000076 415B                        pop r11
-   100 00000078 415A                        pop r10
-   101 0000007A 4159                        pop r9
-   102 0000007C 4158                        pop r8
-   103 0000007E 5E                          pop rsi
-   104 0000007F 5F                          pop rdi
-   105 00000080 5A                          pop rdx
-   106 00000081 59                          pop rcx
-   107 00000082 5B                          pop rbx
-   108 00000083 5D                          pop rbp
-   109 00000084 C3                          ret
-   110                                  
-   111                                  section .data
-   112 00000000 000000000000F03F        one dq 1.0
+    37                                  ;====================================================================================
+    38                                  
+    39                                  global taylor
+    40                                  section .text
+    41                                  
+    42                                  taylor:
+    43                                      ; Prologue with 15 pushes
+    44 00000000 55                          push rbp
+    45 00000001 4889E5                      mov rbp, rsp
+    46 00000004 53                          push rbx
+    47 00000005 51                          push rcx
+    48 00000006 52                          push rdx
+    49 00000007 57                          push rdi
+    50 00000008 56                          push rsi
+    51 00000009 4150                        push r8
+    52 0000000B 4151                        push r9
+    53 0000000D 4152                        push r10
+    54 0000000F 4153                        push r11
+    55 00000011 4154                        push r12
+    56 00000013 4155                        push r13
+    57 00000015 4156                        push r14
+    58 00000017 4157                        push r15
+    59 00000019 9C                          pushf
+    60                                  
+    61                                      ; Initialize variables
+    62 0000001A 4989FD                      mov r13, rdi             ; r13 = n (number of terms)
+    63 0000001D F24D0F2AFD                  cvtsi2sd xmm15, r13      ; Convert n to double for debug if needed
+    64 00000022 F2440F10F0                  movsd xmm14, xmm0        ; xmm14 = x (input x)
+    65 00000027 F2440F102C25-               movsd xmm13, qword [one] ; xmm13 = e^x (initially 1.0)
+    65 0000002D [00000000]         
+    66 00000031 F2440F102425-               movsd xmm12, qword [one] ; xmm12 = prev_term (initially 1.0)
+    66 00000037 [00000000]         
+    67 0000003B 41BC01000000                mov r12, 1               ; r12 = k (loop counter), starting at 1
+    68                                  
+    69                                  taylor_loop:
+    70                                      ; Break if k >= n
+    71 00000041 4D39EC                      cmp r12, r13
+    72 00000044 7D22                        jge taylor_done
+    73                                  
+    74                                      ; Compute current term: current_term = prev_term * x / k
+    75 00000046 F2410F10C4                  movsd xmm0, xmm12        ; xmm0 = prev_term
+    76 0000004B F2410F59C6                  mulsd xmm0, xmm14        ; xmm0 *= x
+    77 00000050 F2490F2ACC                  cvtsi2sd xmm1, r12       ; Convert k to double
+    78 00000055 F20F5EC1                    divsd xmm0, xmm1         ; xmm0 /= k
+    79 00000059 F2440F10E0                  movsd xmm12, xmm0        ; Update prev_term = current_term
+    80                                  
+    81                                      ; Add current term to sum
+    82 0000005E F2440F58E8                  addsd xmm13, xmm0        ; e^x += current_term
+    83                                  
+    84                                      ; Increment k (r12) and loop
+    85 00000063 49FFC4                      inc r12
+    86 00000066 EBD9                        jmp taylor_loop
+    87                                  
+    88                                  taylor_done:
+    89                                      ; Move result to xmm0
+    90 00000068 F2410F10C5                  movsd xmm0, xmm13
+    91                                  
+    92                                      ; Epilogue with 15 pops
+    93 0000006D 9D                          popf
+    94 0000006E 415F                        pop r15
+    95 00000070 415E                        pop r14
+    96 00000072 415D                        pop r13
+    97 00000074 415C                        pop r12
+    98 00000076 415B                        pop r11
+    99 00000078 415A                        pop r10
+   100 0000007A 4159                        pop r9
+   101 0000007C 4158                        pop r8
+   102 0000007E 5E                          pop rsi
+   103 0000007F 5F                          pop rdi
+   104 00000080 5A                          pop rdx
+   105 00000081 59                          pop rcx
+   106 00000082 5B                          pop rbx
+   107 00000083 5D                          pop rbp
+   108 00000084 C3                          ret
+   109                                  
+   110                                  section .data
+   111 00000000 000000000000F03F        one dq 1.0

@@ -34,7 +34,6 @@
 ;   This program computes the approximation of e^x using the Taylor series expansion
 ;   up to a specified number of terms. The result is calculated efficiently and 
 ;   execution time is measured in CPU clock ticks for performance evaluation.
-;
 ;====================================================================================
 
 global taylor
