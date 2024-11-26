@@ -46,8 +46,8 @@ extern scanf
 section .data
     welcome_msg db "Welcome to Taylor Series by Kenny Garcia.", 10, 0  ; Greeting message
     software_msg db "This software will compute any power of e that you may need.", 10, 0  ; Purpose of the program
-    input_prompt_x db "Please enter a float number value for x (e.g., 17.55): ", 0  ; Prompt for x
-    input_prompt_n db "Please enter the number of terms to include in the Taylor sum (e.g., 8): ", 0  ; Prompt for n
+    input_prompt_x db "Please enter a float number value for x: ", 0  ; Prompt for x
+    input_prompt_n db "Please enter the number of terms to include in the Taylor sum: ", 0  ; Prompt for n
     clock_start_msg db "The time on the clock is now %llu tics and Taylor has been called.", 10, 0  ; Start clock message
     thank_you_msg db "Thank you for waiting.", 10, 0  ; Thank you message
     clock_end_msg db "The time on the clock when Taylor terminated was %llu tics.", 10, 0  ; End clock message
