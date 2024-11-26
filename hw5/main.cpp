@@ -1,16 +1,10 @@
 #include <iostream>
 
-extern "C" void series();  // Declare the series function (written in assembly)
+extern "C" double series(double x, unsigned long n);
 
 int main() {
-    // Greeting message
-    std::cout << "Welcome to Taylor Series by Kenny Garcia" << std::endl;
 
-    // Call the series function
-    series();
-
-    // Exit message
-    std::cout << "Goodbye!" << std::endl;
+    series(0.0, 0);  // Call series. Inputs and timing handled in assembly.;
 
     return 0;
 }

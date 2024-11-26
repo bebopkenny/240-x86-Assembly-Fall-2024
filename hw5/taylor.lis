@@ -1,92 +1,58 @@
-     1                                  global taylor
-     2                                  extern printf  ; Declare printf as an external function
+     1                                  section .text
+     2                                      global taylor
      3                                  
-     4                                  section .data
-     5 00000000 44656275673A207461-         debug_taylor_msg db "Debug: taylor called with x=%lf, n=%lu", 10, 0
-     5 00000009 796C6F722063616C6C-
-     5 00000012 656420776974682078-
-     5 0000001B 3D256C662C206E3D25-
-     5 00000024 6C750A00           
-     6 00000028 44656275673A204974-         debug_iteration_msg db "Debug: Iteration k=%ld, term=%lf", 10, 0
-     6 00000031 65726174696F6E206B-
-     6 0000003A 3D256C642C20746572-
-     6 00000043 6D3D256C660A00     
-     7                                  
-     8                                  section .text
-     9                                  
-    10                                  ; Function prototype:
-    11                                  ; double taylor(double x, unsigned long int n)
-    12                                  ; Inputs:
-    13                                  ;   x in xmm0 (double)
-    14                                  ;   n in rdi (unsigned long int)
-    15                                  ; Output:
-    16                                  ;   Result in xmm0 (double)
-    17                                  
-    18                                  taylor:
-    19                                      ; Back up callee-saved registers
-    20 00000000 55                          push rbp
-    21 00000001 4889E5                      mov rbp, rsp
-    22 00000004 53                          push rbx
-    23 00000005 4154                        push r12
-    24 00000007 4155                        push r13
-    25 00000009 4156                        push r14
-    26 0000000B 4157                        push r15
-    27                                  
-    28                                      ; Debug: Print parameters passed to taylor
-    29 0000000D B800000000                  mov rax, 0
-    30 00000012 48BF-                       mov rdi, debug_taylor_msg
-    30 00000014 [0000000000000000] 
-    31 0000001C F20F10C0                    movsd xmm0, xmm0    ; x (double) passed in xmm0
-    32 00000020 4889FE                      mov rsi, rdi        ; n (unsigned long int) passed in rdi
-    33 00000023 E8(00000000)                call printf
-    34                                  
-    35                                      ; Initialize variables
-    36 00000028 4889FB                      mov rbx, rdi          ; rbx = n (number of terms)
-    37 0000002B 41BC01000000                mov r12, 1            ; r12 = factorial accumulator, initially 1
-    38 00000031 4D31ED                      xor r13, r13          ; r13 = k (current term index), initially 0
-    39 00000034 F20F10C8                    movsd xmm1, xmm0      ; xmm1 = x (base value for terms)
-    40 00000038 F20F101425-                 movsd xmm2, qword [taylor_one] ; xmm2 = 1.0 (initial x^0)
-    40 0000003D [4A000000]         
-    41 00000041 F20F10DA                    movsd xmm3, xmm2      ; xmm3 = result accumulator, initially 1.0
-    42                                  
-    43                                  taylor_loop:
-    44                                      ; Break if k > n (all terms computed)
-    45 00000045 4939DD                      cmp r13, rbx
-    46 00000048 7F36                        jg taylor_done
+     4                                  ; double taylor(double x, unsigned long n)
+     5                                  taylor:
+     6                                      ; Prologue
+     7 00000000 55                          push rbp
+     8 00000001 4889E5                      mov rbp, rsp
+     9 00000004 4883EC20                    sub rsp, 32  ; Allocate stack space for local variables
+    10                                  
+    11                                      ; Initialize sum and term
+    12 00000008 0F57C9                      xorps xmm1, xmm1          ; xmm1 = sum = 0.0
+    13 0000000B F20F105510                  movsd xmm2, qword [rbp+16]; xmm2 = x
+    14 00000010 B801000000                  mov rax, 1                ; rax = factorial = 1
+    15 00000015 4831C9                      xor rcx, rcx              ; rcx = i = 0
+    16                                  
+    17                                  .loop_start:
+    18 00000018 4839F9                      cmp rcx, rdi              ; Compare i with n
+    19 0000001B 7D2A                        jge .loop_end             ; If i >= n, exit loop
+    20                                  
+    21                                      ; Calculate term: x^i / i!
+    22 0000001D 4885C9                      test rcx, rcx             ; Check if i == 0
+    23 00000020 7404                        jz .first_term
+    24 00000022 480FAFC1                    imul rax, rcx             ; factorial *= i
+    25                                  .first_term:
+    26 00000026 4889C3                      mov rbx, rax              ; Copy factorial to rbx
+    27 00000029 F2480F2ADB                  cvtsi2sd xmm3, rbx        ; xmm3 = (double)factorial
+    28                                  
+    29 0000002E 4889CB                      mov rbx, rcx
+    30 00000031 F20F10E2                    movsd xmm4, xmm2          ; xmm4 = x
+    31 00000035 E813000000                  call pow                  ; xmm4 = x^i
+    32                                  
+    33 0000003A F20F5EE3                    divsd xmm4, xmm3          ; xmm4 = term = x^i / i!
+    34 0000003E F20F58CC                    addsd xmm1, xmm4          ; sum += term
+    35                                  
+    36                                      ; Debugging: Optional code to print intermediate values
+    37                                      ; Print x^i (in xmm4), i! (in xmm3), and sum (in xmm1)
+    38                                  
+    39 00000042 48FFC1                      inc rcx
+    40 00000045 EBD1                        jmp .loop_start
+    41                                  .loop_end:
+    42 00000047 F20F10C1                    movsd xmm0, xmm1          ; Return sum in xmm0
+    43                                  
+    44                                      ; Epilogue
+    45 0000004B C9                          leave
+    46 0000004C C3                          ret
     47                                  
-    48                                      ; Debug: Print current iteration values
-    49 0000004A B800000000                  mov rax, 0
-    50 0000004F 48BF-                       mov rdi, debug_iteration_msg
-    50 00000051 [2800000000000000] 
-    51 00000059 4C89EE                      mov rsi, r13          ; Current term index (k)
-    52 0000005C F20F10C2                    movsd xmm0, xmm2      ; Current term (x^k / k!)
-    53 00000060 E8(00000000)                call printf
-    54                                  
-    55                                      ; Compute current term: xmm4 = x^k / k!
-    56 00000065 F20F10E2                    movsd xmm4, xmm2      ; xmm4 = x^k
-    57 00000069 F2410F5E2424                divsd xmm4, qword [r12] ; xmm4 = x^k / k!
-    58 0000006F F20F58DC                    addsd xmm3, xmm4      ; result += x^k / k!
-    59                                  
-    60                                      ; Increment k (r13) and compute the next term
-    61 00000073 49FFC5                      inc r13               ; k++
-    62 00000076 F20F59D1                    mulsd xmm2, xmm1      ; xmm2 *= x (next x^k)
-    63 0000007A 4D0FAFE5                    imul r12, r13         ; r12 *= k (next factorial)
-    64                                  
-    65                                      ; Loop back for next term
-    66 0000007E EBC5                        jmp taylor_loop
-    67                                  
-    68                                  taylor_done:
-    69                                      ; Return result in xmm0
-    70 00000080 F20F10C3                    movsd xmm0, xmm3
-    71                                  
-    72                                      ; Restore callee-saved registers
-    73 00000084 415F                        pop r15
-    74 00000086 415E                        pop r14
-    75 00000088 415D                        pop r13
-    76 0000008A 415C                        pop r12
-    77 0000008C 5B                          pop rbx
-    78 0000008D 5D                          pop rbp
-    79 0000008E C3                          ret
-    80                                  
-    81                                  section .data
-    82 0000004A 000000000000F03F        taylor_one dq 1.0  ; Constant value 1.0 for initializing result
+    48                                  ; Power function (x^i)
+    49                                  pow:
+    50 0000004D 4885DB                      test rbx, rbx
+    51 00000050 740D                        jz .pow_end               ; If exponent is 0, result is 1
+    52 00000052 F20F10C4                    movsd xmm0, xmm4          ; xmm0 = base = x
+    53                                  .pow_loop:
+    54 00000056 F20F59C4                    mulsd xmm0, xmm4          ; xmm0 *= base
+    55 0000005A 48FFCB                      dec rbx
+    56 0000005D 75F7                        jnz .pow_loop             ; Repeat until exponent reaches 0
+    57                                  .pow_end:
+    58 0000005F C3                          ret

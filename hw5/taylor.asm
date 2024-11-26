@@ -1,82 +1,58 @@
-global taylor
-extern printf  ; Declare printf as an external function
-
-section .data
-    debug_taylor_msg db "Debug: taylor called with x=%lf, n=%lu", 10, 0
-    debug_iteration_msg db "Debug: Iteration k=%ld, term=%lf", 10, 0
-
 section .text
+    global taylor
 
-; Function prototype:
-; double taylor(double x, unsigned long int n)
-; Inputs:
-;   x in xmm0 (double)
-;   n in rdi (unsigned long int)
-; Output:
-;   Result in xmm0 (double)
-
+; double taylor(double x, unsigned long n)
 taylor:
-    ; Back up callee-saved registers
+    ; Prologue
     push rbp
     mov rbp, rsp
-    push rbx
-    push r12
-    push r13
-    push r14
-    push r15
+    sub rsp, 32  ; Allocate stack space for local variables
 
-    ; Debug: Print parameters passed to taylor
-    mov rax, 0
-    mov rdi, debug_taylor_msg
-    movsd xmm0, xmm0    ; x (double) passed in xmm0
-    mov rsi, rdi        ; n (unsigned long int) passed in rdi
-    call printf
+    ; Initialize sum and term
+    xorps xmm1, xmm1          ; xmm1 = sum = 0.0
+    movsd xmm2, qword [rbp+16]; xmm2 = x
+    mov rax, 1                ; rax = factorial = 1
+    xor rcx, rcx              ; rcx = i = 0
 
-    ; Initialize variables
-    mov rbx, rdi          ; rbx = n (number of terms)
-    mov r12, 1            ; r12 = factorial accumulator, initially 1
-    xor r13, r13          ; r13 = k (current term index), initially 0
-    movsd xmm1, xmm0      ; xmm1 = x (base value for terms)
-    movsd xmm2, qword [taylor_one] ; xmm2 = 1.0 (initial x^0)
-    movsd xmm3, xmm2      ; xmm3 = result accumulator, initially 1.0
+.loop_start:
+    cmp rcx, rdi              ; Compare i with n
+    jge .loop_end             ; If i >= n, exit loop
 
-taylor_loop:
-    ; Break if k > n (all terms computed)
-    cmp r13, rbx
-    jg taylor_done
+    ; Calculate term: x^i / i!
+    test rcx, rcx             ; Check if i == 0
+    jz .first_term
+    imul rax, rcx             ; factorial *= i
+.first_term:
+    mov rbx, rax              ; Copy factorial to rbx
+    cvtsi2sd xmm3, rbx        ; xmm3 = (double)factorial
 
-    ; Debug: Print current iteration values
-    mov rax, 0
-    mov rdi, debug_iteration_msg
-    mov rsi, r13          ; Current term index (k)
-    movsd xmm0, xmm2      ; Current term (x^k / k!)
-    call printf
+    mov rbx, rcx
+    movsd xmm4, xmm2          ; xmm4 = x
+    call pow                  ; xmm4 = x^i
 
-    ; Compute current term: xmm4 = x^k / k!
-    movsd xmm4, xmm2      ; xmm4 = x^k
-    divsd xmm4, qword [r12] ; xmm4 = x^k / k!
-    addsd xmm3, xmm4      ; result += x^k / k!
+    divsd xmm4, xmm3          ; xmm4 = term = x^i / i!
+    addsd xmm1, xmm4          ; sum += term
 
-    ; Increment k (r13) and compute the next term
-    inc r13               ; k++
-    mulsd xmm2, xmm1      ; xmm2 *= x (next x^k)
-    imul r12, r13         ; r12 *= k (next factorial)
+    ; Debugging: Optional code to print intermediate values
+    ; Print x^i (in xmm4), i! (in xmm3), and sum (in xmm1)
 
-    ; Loop back for next term
-    jmp taylor_loop
+    inc rcx
+    jmp .loop_start
+.loop_end:
+    movsd xmm0, xmm1          ; Return sum in xmm0
 
-taylor_done:
-    ; Return result in xmm0
-    movsd xmm0, xmm3
-
-    ; Restore callee-saved registers
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rbx
-    pop rbp
+    ; Epilogue
+    leave
     ret
 
-section .data
-taylor_one dq 1.0  ; Constant value 1.0 for initializing result
+; Power function (x^i)
+pow:
+    test rbx, rbx
+    jz .pow_end               ; If exponent is 0, result is 1
+    movsd xmm0, xmm4          ; xmm0 = base = x
+.pow_loop:
+    mulsd xmm0, xmm4          ; xmm0 *= base
+    dec rbx
+    jnz .pow_loop             ; Repeat until exponent reaches 0
+.pow_end:
+    ret

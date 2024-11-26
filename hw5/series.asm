@@ -1,133 +1,133 @@
-global series
-extern taylor
-extern printf
-extern scanf
-
 section .data
-    prompt1 db "This software will compute any power of e that you may need.", 10, 0
-    prompt2 db "Please enter a float number value for x: ", 0
-    prompt3 db "Please enter the number of terms to include in the Taylor sum: ", 0
-    start_time_msg db "The time on the clock is now %llu tics and taylor has been called.", 10, 0
-    end_time_msg db "The time on the clock when Taylor terminated was %llu tics.", 10, 0
-    elapsed_time_msg db "The execution time was %llu tics.", 10, 0
-    result_msg db "The computed approximation of e^x is %.8f", 10, 0
-    raw_memory_msg db "Raw memory contents of x after scanf: 0x%016lx", 10, 0
-    raw_memory_msg_int db "Raw memory contents of n after scanf: 0x%016lx", 10, 0
-    debug_msg db "Debug: x=%lf, n=%ld", 10, 0
-    error_msg db "Error: Invalid input for x or n.", 10, 0
-    float_format db "%lf", 0
-    int_format db "%ld", 0  ; Updated format specifier for integer input
+    welcome_msg db "Welcome to Taylor Series by Kenny Garcia.", 10, 0
+    software_msg db "This software will compute any power of e that you may need.", 10, 0
+    input_prompt_x db "Please enter a float number value for x (e.g., 17.55): ", 0
+    input_prompt_n db "Please enter the number of terms to include in the Taylor sum (e.g., 8): ", 0
+    clock_start_msg db "The time on the clock is now %llu tics and Taylor has been called.", 10, 0
+    thank_you_msg db "Thank you for waiting.", 10, 0
+    clock_end_msg db "The time on the clock when Taylor terminated was %llu tics.", 10, 0
+    exec_time_msg db "The execution time was %llu tics.", 10, 0
+    result_msg db "The computed approximation of e^x is: %.8f", 10, 0
+    goodbye_msg db "Thank you for using the Eyere exponential calculator.", 10, 0
+    outro_msg db "Please return another day. The computed value will be set to the caller functions.", 10, 0
+    driver_msg db "The driver received this number %.8f and will keep it.", 10, 0
+    farewell_msg db "Goodbye.", 10, 0
+
+    ; Format strings for scanf and printf
+    format_float db "%lf", 0  ; Format for reading a double
+    format_int db "%lu", 0    ; Format for reading an unsigned long integer
 
 section .bss
-    align 8                  ; Ensure proper alignment
-    user_num resq 1          ; To store the user's float input (x)
-    user_int resq 1          ; To store the user's integer input (n)
-    result resq 1            ; To store the result of the taylor function
-    start_ticks resq 1       ; To store the start clock ticks
-    end_ticks resq 1         ; To store the end clock ticks
-    elapsed_ticks resq 1     ; To store the elapsed clock ticks
+    x resq 1                ; Storage for x
+    n resq 1                ; Storage for n
+    start_tics resq 1       ; Start tics
+    end_tics resq 1         ; End tics
 
 section .text
+    global series
+    extern taylor
+    extern printf           ; To print formatted strings
+    extern scanf            ; To read user input
+
+; double series(double x, unsigned long n)
 series:
-    ; Back up registers
+    ; Prologue
     push rbp
     mov rbp, rsp
-    push rbx
-    push rcx
-    push rdx
-    push rsi
-    push rdi
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-    push r13
-    push r14
-    push r15
-    pushf
+    sub rsp, 32             ; Allocate stack space for local variables
 
-    ; Display prompt1
-    mov rax, 0
-    mov rdi, prompt1
-    call printf
+    ; Print welcome message
+    lea rdi, [welcome_msg]
+    xor rax, rax
+    call printf             ; printf(welcome_msg)
 
-    ; Prompt for x (float value)
-    mov rax, 0
-    mov rdi, prompt2
-    call printf
-    mov rax, 1
-    mov rdi, float_format
-    mov rsi, user_num
-    call scanf
+    ; Print software purpose message
+    lea rdi, [software_msg]
+    xor rax, rax
+    call printf             ; printf(software_msg)
 
-    ; Debug: Print raw memory contents of x
-    mov rax, qword [user_num]
-    mov rdi, raw_memory_msg
+    ; Prompt for x
+    lea rdi, [input_prompt_x] ; Load the x prompt string
+    xor rax, rax
+    call printf             ; Display prompt
+
+    lea rsi, [x]              ; Address to store x
+    lea rdi, [format_float]   ; Format for float input "%lf"
+    xor rax, rax
+    call scanf                ; scanf("%lf", &x)
+
+    ; Prompt for n
+    lea rdi, [input_prompt_n] ; Load the n prompt string
+    xor rax, rax
+    call printf             ; Display prompt
+
+    lea rsi, [n]              ; Address to store n
+    lea rdi, [format_int]     ; Format for integer input "%lu"
+    xor rax, rax
+    call scanf                ; scanf("%lu", &n)
+
+    ; Start timing
+    rdtsc                       ; Read tics into EDX:EAX
+    shl rdx, 32
+    or rax, rdx
+    mov qword [start_tics], rax
+
+    ; Print clock start message
+    lea rdi, [clock_start_msg]
     mov rsi, rax
-    call printf
+    xor rax, rax                ; printf expects 0 floating-point arguments
+    call printf                 ; printf(clock_start_msg, start_tics)
 
-    ; Prompt for n (integer value)
-    mov rax, 0
-    mov rdi, prompt3
-    call printf
-    mov rax, 1
-    mov rdi, int_format
-    mov rsi, user_int
-    call scanf
+    ; Call taylor function
+    movsd xmm0, qword [x]       ; Load x into xmm0
+    mov rdi, qword [n]          ; Move n into rdi
+    call taylor                 ; Call taylor(x, n)
 
-    ; Debug: Print raw memory contents of n
-    mov rax, qword [user_int]
-    mov rdi, raw_memory_msg_int
+    ; End timing
+    rdtsc                       ; Read tics into EDX:EAX
+    shl rdx, 32
+    or rax, rdx
+    mov qword [end_tics], rax
+
+    ; Print clock end message
+    lea rdi, [clock_end_msg]
     mov rsi, rax
+    xor rax, rax
+    call printf                 ; printf(clock_end_msg, end_tics)
+
+    ; Calculate execution time
+    mov rax, qword [end_tics]
+    sub rax, qword [start_tics]
+
+    ; Print execution time
+    lea rdi, [exec_time_msg]
+    mov rsi, rax
+    xor rax, rax
+    call printf                 ; printf(exec_time_msg, exec_time)
+
+    ; Print result
+    lea rdi, [result_msg]
+    mov rax, 1                  ; printf expects 1 floating-point argument
+    call printf                 ; printf(result_msg, result in xmm0)
+
+    ; Print outro messages
+    lea rdi, [goodbye_msg]
+    xor rax, rax
     call printf
 
-    ; Check for invalid n
-    mov rax, qword [user_int]
-    test rax, rax
-    jle error_exit
-
-; Debug print for x and n
-mov rax, 0
-mov rdi, debug_msg
-
-; Load x into the FPU stack and store back
-fld qword [user_num]        ; Load `user_num` onto FPU stack
-fstp qword [result]         ; Store back into memory
-movsd xmm0, qword [result]  ; Move into `xmm0` for printf
-
-; Ensure n is correctly loaded into rsi for printf
-mov rsi, qword [user_int]
-
-; Call printf to display debug information
-call printf
-
-
-
-
-    ; Rest of the code remains unchanged...
-
-error_exit:
-    ; Print error message and exit
-    mov rax, 0
-    mov rdi, error_msg
+    lea rdi, [outro_msg]
+    xor rax, rax
     call printf
 
-cleanup:
-    ; Restore registers
-    popf
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rdi
-    pop rsi
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rbp
+    lea rdi, [driver_msg]
+    mov rax, 1
+    call printf                 ; printf(driver_msg, result in xmm0)
+
+    lea rdi, [farewell_msg]
+    xor rax, rax
+    call printf
+
+    ; Epilogue
+    leave
     ret
+
