@@ -13,6 +13,7 @@
   - [Assignment 3: Arrays](#assignment-3-arrays)
   - [Assignment 4: Non-deterministic Random Numbers](#assignment-4-non-deterministic-random-numbers)
   - [Assignment 5: Execution Speed](#assignment-5-execution-speed)
+  - [Assignment 6: Pure Assembly](#assignment-6-pure-assembly)
 - [License](#license)
 
 ---
@@ -93,6 +94,37 @@ Measure the execution time of assembly functions, exploring CPU frequency and cl
 
 **Bonus**  
 Convert execution time (in clock cycles) to nanoseconds for extra credit.  
+
+---
+
+### Assignment 6: Pure Assembly
+
+**Introduction**  
+This assignment focuses on programming in **pure assembly**—developing software without the support of higher-level languages like C or C++.  
+
+**Application Purpose**  
+Compute the resistance (\(R\)) in an electric circuit using the formula:  
+\[
+R = \frac{F}{I}
+\]  
+Where:  
+- \(F\) is the Electromotive Force (EMF) in Volts.  
+- \(I\) is the Current in Amps.  
+
+**Key Features**  
+- Input EMF (\(F\)) and Current (\(I\)).  
+- Output Resistance (\(R\)).  
+
+**Educational Purpose**  
+- Gain hands-on experience with **pure assembly** concepts.  
+- Utilize **macros** to reduce repetitive code.  
+
+**Macro Benefits**  
+- Avoids activation records and `ret` instructions.  
+- Efficient for reusing blocks of assembly code.  
+
+**Suggestions**  
+Experiment with macros to implement one of the following standard functions: `atof`, `ftoa`, or `strlen`. This will deepen your understanding of macros and their flexibility.  
 
 ---
 
