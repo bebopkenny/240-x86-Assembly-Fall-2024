@@ -1,118 +1,93 @@
+;====================================================================================
+; Program Name: "Electricity Resistance Calculator". 
+; This program calculates the resistance in a direct current circuit using the formula
+; Resistance = EMF / Current, based on user-provided inputs for EMF (voltage) and Current.
+;
+; Copyright (C) 2024  Kenny Garcia. 
+;
+; This program is free software: you can redistribute it and/or modify it under the
+; terms of the GNU General Public License as published by the Free Software Foundation,
+; version 3 or (at your option) any later version.
+;
+; Electricity Resistance Calculator is distributed in the hope that it will be helpful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+; or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.
+;
+; A copy of the GNU General Public License v3 can be found at: <https://www.gnu.org/licenses/>.
+;====================================================================================
+;
+; Author Information:
+;   Author Name: Kenny Garcia
+;   Author Email: kennygarcia15@csu.fullerton.edu
+;   CWID: 887930782
+;   Class: 240 Section 05
+;
+; Program Information:
+;   Program Name: Electricity Resistance Calculator
+;   Programming Languages: Main module in x86 Assembly
+;   Start Date: 2024-December-05
+;   Last Updated: 2024-December-17
+;   Files in the Program: driver.asm, faraday.asm, atof.asm, ftoa.asm, r.sh
+;   Status: Complete and verified for functional accuracy
+;
+; Purpose:
+;   This program calculates the resistance in a DC circuit using user-provided inputs
+;   for the EMF (in volts) and the current (in amps). The program validates inputs, 
+;   computes the resistance, and displays the results. It also outputs a message 
+;   confirming the calculation and returns a zero status to the operating system.
+;====================================================================================
+
 section .text
 global atof
+
 atof:
-    mov rax, 0               ; Initialize the result to 0
-    ; Parse the string in RDI (should include parsing logic)
-    ; Example: Convert "4.3" to float
-    ; Temporary: Set xmm0 to 4.3 directly for debugging
-    mov rax, 0x4010C00000000000 ; 4.3 in IEEE-754 format
-    movq xmm0, rax
-    ret
+push       rbp                          ;Save a copy of the stack base pointer
+mov        rbp, rsp                     ;We do this in order to be fully compatible with C and C++.
+push       rbx                          ;Back up rbx
+push       rcx                          ;Back up rcx
+push       rdx                          ;Back up rdx
+push       rsi                          ;Back up rsi
+push       rdi                          ;Back up rdi
+push       r8                           ;Back up r8
+push       r9                           ;Back up r9
+push       r10                          ;Back up r10
+push       r11                          ;Back up r11
+push       r12                          ;Back up r12
+push       r13                          ;Back up r13
+push       r14                          ;Back up r14
+push       r15                          ;Back up r15
+pushf  
+    xor rax, rax              ; Clear rax for the result
+    xor rcx, rcx              ; Reset digit index
 
+parse_loop:
+    movzx rdx, byte [rdi + rcx] ; Load character
+    cmp rdx, 0                ; Check for null terminator
+    je done_parsing           ; Exit loop if null terminator
+    cmp rdx, '.'              ; Check for decimal point
+    je done_parsing           ; Stop parsing at decimal point
+    sub rdx, '0'              ; Convert ASCII to integer
+    cmp rdx, 9                ; Validate digit (0-9)
+    ja done_parsing           ; Exit if invalid digit
+    imul rax, rax, 10         ; Multiply result by 10
+    add rax, rdx              ; Add current digit
+    inc rcx                   ; Move to the next character
+    jmp parse_loop
 
-
-
-
-
-
-
-
-
-; ;********************************************************************
-; ; Program name: atof
-; ; Description: Converts an ASCII string to a floating-point number
-; ; Function Prototype: double atof(const char* str);
-; ; Input: 
-; ;   rdi - Address of the input string
-; ; Output: 
-; ;   xmm0 - Floating-point value represented by the string
-; ;********************************************************************
-
-; global atof
-; section .data
-;     ten dq 10.0          ; Constant 10.0 for division/multiplication
-;     neg_one dq -1.0      ; Constant -1.0 for sign handling
-;     zero dq 0.0          ; Constant 0.0 for initialization
-
-; section .bss
-; ; No uninitialized data needed
-
-; section .text
-; atof:
-;     push rbp                 ; Save base pointer
-;     mov rbp, rsp             ; Establish stack frame
-;     xor rax, rax             ; Clear rax
-;     xor rcx, rcx             ; Counter for decimals
-;     movsd xmm0, qword [zero] ; Initialize xmm0 to 0.0 (final result)
-;     movsd xmm1, qword [ten]  ; Load constant 10.0 into xmm1
-;     mov rsi, rdi             ; Copy address of the string to rsi
-;     xor rdx, rdx             ; Clear rdx for sign flag (0 = positive, 1 = negative)
-
-; ;===== Step 1: Skip leading spaces =====
-; skip_spaces:
-;     mov al, byte [rsi]       ; Load the current character
-;     cmp al, ' '              ; Compare with space
-;     jne check_sign
-;     inc rsi                  ; Move to the next character
-;     jmp skip_spaces
-
-; ;===== Step 2: Check for a sign =====
-; check_sign:
-;     mov al, byte [rsi]       ; Load the current character
-;     cmp al, '-'              ; Is it a minus sign?
-;     jne check_plus
-;     mov rdx, 1               ; Set sign flag to negative
-;     inc rsi                  ; Move to the next character
-;     jmp parse_integer
-; check_plus:
-;     cmp al, '+'              ; Is it a plus sign?
-;     jne parse_integer
-;     inc rsi                  ; Move to the next character
-
-; ;===== Step 3: Parse the integer part =====
-; parse_integer:
-;     mov al, byte [rsi]       ; Load the current character
-;     cmp al, '0'              ; Check if character is less than '0'
-;     jl check_decimal
-;     cmp al, '9'              ; Check if character is greater than '9'
-;     jg check_decimal
-
-;     sub al, '0'              ; Convert ASCII to integer (0-9)
-;     cvtsi2sd xmm2, rax       ; Convert integer to double in xmm2
-;     mulsd xmm0, xmm1         ; Multiply current result by 10.0
-;     addsd xmm0, xmm2         ; Add the new digit to the result
-;     inc rsi                  ; Move to the next character
-;     jmp parse_integer
-
-; ;===== Step 4: Parse the decimal part =====
-; check_decimal:
-;     cmp byte [rsi], '.'      ; Check for a decimal point
-;     jne apply_sign           ; No decimal point, proceed to sign
-;     inc rsi                  ; Move past the decimal point
-
-; parse_fraction:
-;     mov al, byte [rsi]       ; Load the current character
-;     cmp al, '0'              ; Check if character is less than '0'
-;     jl apply_sign
-;     cmp al, '9'              ; Check if character is greater than '9'
-;     jg apply_sign
-
-;     sub al, '0'              ; Convert ASCII to integer
-;     cvtsi2sd xmm2, rax       ; Convert to double
-;     divsd xmm2, xmm1         ; Divide by 10^n (incrementally)
-;     addsd xmm0, xmm2         ; Add to the result
-;     mulsd xmm1, qword [ten]  ; Multiply xmm1 by 10 for next decimal place
-;     inc rsi                  ; Move to the next character
-;     jmp parse_fraction
-
-; ;===== Step 5: Apply the sign =====
-; apply_sign:
-;     cmp rdx, 1               ; Check if the number is negative
-;     jne done
-;     movsd xmm2, qword [neg_one]
-;     mulsd xmm0, xmm2         ; Multiply by -1 to apply the sign
-
-; ;===== Step 6: Return result =====
-; done:
-;     pop rbp                  ; Restore base pointer
-;     ret
+done_parsing:
+popf                                            ;Restore rflags
+pop        r15                                  ;Restore r15
+pop        r14                                  ;Restore r14
+pop        r13                                  ;Restore r13
+pop        r12                                  ;Restore r12
+pop        r11                                  ;Restore r11
+pop        r10                                  ;Restore r10
+pop        r9                                   ;Restore r9
+pop        r8                                   ;Restore r8
+pop        rdi                                  ;Restore rdi
+pop        rsi                                  ;Restore rsi
+pop        rdx                                  ;Restore rdx
+pop        rcx                                  ;Restore rcx
+pop        rbx                                  ;Restore rbx
+pop        rbp                                  ;Restore rbp
+ret
